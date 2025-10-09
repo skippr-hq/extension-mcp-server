@@ -1,13 +1,14 @@
 # Skippr MCP Server
 
-A Model Context Protocol (MCP) server implementation for Skippr integration, enabling AI assistants to interact with Skippr functionality through standardized tools and resources.
+A Model Context Protocol (MCP) server that provides read-only access to Skippr product review issues stored in `.skippr` directories. This enables AI coding agents (Claude, Cursor, Windsurf) to read and analyze Skippr issues from your local project.
 
 ## Features
 
-- **Tools**: Execute Skippr actions through the `skipper_action` tool
-- **Resources**: Access Skippr status and configuration
-- **Extensible**: Easy to add new tools, resources, and prompts
-- **TypeScript**: Full type safety and modern JavaScript features
+- **Read-Only MCP Tools**: List and retrieve Skippr issues via stdio transport
+- **Local File Access**: Issues stored as markdown files in `.skippr` directory
+- **Filtering Support**: Filter issues by review, severity, agent type, or resolved status
+- **Type Safe**: Full TypeScript with Zod runtime validation
+- **Test Coverage**: Comprehensive test suite with Vitest
 
 ## Installation
 
@@ -35,9 +36,14 @@ npm run build
 
 ## Development
 
-Run the server in development mode with hot reload:
+Run tests:
 ```bash
-npm run dev
+npm test
+```
+
+Type checking:
+```bash
+npm run typecheck
 ```
 
 ## Adding to MCP Clients
@@ -76,212 +82,131 @@ Most MCP clients follow a similar configuration pattern:
 }
 ```
 
-## Extending the Server
+## Available Tools
 
-### Adding New Tools
+### `skippr_list_issues`
 
-Tools allow AI assistants to perform actions. Add new tools in `src/index.ts`:
-
-1. **Define the tool in the ListToolsRequestSchema handler:**
-
-```typescript
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: "your_new_tool",
-        description: "Description of what your tool does",
-        inputSchema: {
-          type: "object",
-          properties: {
-            param1: {
-              type: "string",
-              description: "Description of parameter 1",
-            },
-            param2: {
-              type: "number",
-              description: "Description of parameter 2",
-            },
-          },
-          required: ["param1"],
-        },
-      },
-      // ... existing tools
-    ],
-  };
-});
-```
-
-2. **Handle the tool execution in CallToolRequestSchema:**
-
-```typescript
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  if (request.params.name === "your_new_tool") {
-    const args = request.params.arguments;
-
-    // Your tool logic here
-    const result = await performYourAction(args.param1, args.param2);
-
-    return {
-      content: [
-        {
-          type: "text",
-          text: JSON.stringify(result, null, 2),
-        },
-      ],
-    };
-  }
-  // ... existing tool handlers
-});
-```
-
-### Adding New Resources
-
-Resources provide data that AI assistants can read. Add new resources:
-
-1. **Define the resource in ListResourcesRequestSchema:**
-
-```typescript
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  return {
-    resources: [
-      {
-        uri: "skippr://your-resource",
-        name: "Your Resource Name",
-        description: "What this resource provides",
-        mimeType: "application/json",
-      },
-      // ... existing resources
-    ],
-  };
-});
-```
-
-2. **Handle resource reads in ReadResourceRequestSchema:**
-
-```typescript
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const { uri } = request.params;
-
-  if (uri === "skippr://your-resource") {
-    const data = await fetchYourResourceData();
-
-    return {
-      contents: [
-        {
-          uri: "skippr://your-resource",
-          mimeType: "application/json",
-          text: JSON.stringify(data, null, 2),
-        },
-      ],
-    };
-  }
-  // ... existing resource handlers
-});
-```
-
-### Adding Prompts
-
-Prompts are predefined templates that help AI assistants understand how to use your server:
-
-```typescript
-server.setRequestHandler(ListPromptsRequestSchema, async () => {
-  return {
-    prompts: [
-      {
-        name: "analyze-skippr-data",
-        description: "Analyze Skippr performance metrics",
-        arguments: [
-          {
-            name: "timeframe",
-            description: "Time period to analyze (e.g., '7d', '30d')",
-            required: false,
-          },
-        ],
-      },
-    ],
-  };
-});
-
-server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-  if (request.params.name === "analyze-skippr-data") {
-    const timeframe = request.params.arguments?.timeframe || "7d";
-
-    return {
-      messages: [
-        {
-          role: "user",
-          content: {
-            type: "text",
-            text: `Analyze the Skippr performance data for the last ${timeframe}.
-                   Focus on key metrics, trends, and provide actionable insights.`,
-          },
-        },
-      ],
-    };
-  }
-});
-```
-
-## API Reference
-
-### Current Tools
-
-#### `skipper_action`
-Executes Skippr-related actions.
+Lists all available Skippr issues with optional filtering.
 
 **Parameters:**
-- `action` (string, required): The action to perform
-- `params` (object, optional): Additional parameters for the action
+- `rootDir` (required): Project root directory containing `.skippr` folder
+- `reviewId` (optional): Filter by review UUID
+- `severity` (optional): Filter by severity level (`low`, `medium`, `high`, `critical`)
+- `agentType` (optional): Filter by agent type (`ux`, `a11y`, `content`, `pmm`, `performance`, `seo`, `security`)
+- `resolved` (optional): Filter by resolved status (boolean)
 
-**Available Actions:**
-- `ping`: Health check, returns "pong"
-- `echo`: Echoes back the provided message
-
-### Current Resources
-
-#### `skippr://status`
-Returns the current status of the Skippr MCP server.
-
-**Response:**
+**Returns:**
 ```json
 {
-  "status": "ready",
-  "version": "1.0.0",
-  "timestamp": "2024-01-01T00:00:00.000Z"
-}
-```
-
-## Environment Variables
-
-You can configure the server using environment variables:
-
-```bash
-# Add to your MCP client configuration
-{
-  "mcpServers": {
-    "skippr-mcp": {
-      "command": "node",
-      "args": ["path/to/dist/index.js"],
-      "env": {
-        "SKIPPR_API_KEY": "your-api-key",
-        "SKIPPR_API_URL": "https://api.skippr.com",
-        "LOG_LEVEL": "debug"
-      }
+  "issues": [
+    {
+      "id": "uuid",
+      "reviewId": "uuid",
+      "title": "Issue title",
+      "severity": "medium",
+      "resolved": false,
+      "agentTypes": ["ux"]
     }
-  }
+  ],
+  "totalCount": 1
 }
 ```
+
+### `skippr_get_issue`
+
+Gets full details for a specific issue including raw markdown content.
+
+**Parameters:**
+- `rootDir` (required): Project root directory containing `.skippr` folder
+- `reviewId` (required): Review UUID
+- `issueId` (required): Issue UUID
+
+**Returns:**
+```json
+{
+  "id": "uuid",
+  "reviewId": "uuid",
+  "title": "Issue title",
+  "severity": "medium",
+  "resolved": false,
+  "agentTypes": ["ux"],
+  "elementMetadata": {
+    "selector": "button.primary",
+    "bounding_box": [100, 200, 150, 40]
+  },
+  "markdown": "## Details\n\nThe issue description...\n\n## Agent Prompt\n\nActionable instructions..."
+}
+```
+
+## File Structure
+
+```
+project-root/
+└── .skippr/
+    └── reviews/
+        └── {review-uuid}/
+            ├── metadata.json
+            └── issues/
+                ├── {issue-uuid}.md
+                └── ...
+```
+
+## Issue Markdown Format
+
+Each issue file contains YAML frontmatter followed by markdown content:
+
+```markdown
+---
+id: 7b8efc72-0122-4589-bbaa-07fb53ec0e26
+reviewId: 223e4567-e89b-12d3-a456-426614174001
+title: Button Color Inconsistency
+severity: medium
+resolved: false
+agentTypes:
+  - ux
+elementMetadata:
+  selector: button.secondary-cta
+  bounding_box: [100, 200, 150, 40]
+---
+
+## Details
+
+Description of the issue...
+
+## Agent Prompt
+
+**Task**: Actionable instructions for fixing the issue...
+
+## Ticket
+
+Optional rich user story format...
+```
+
+
+## Architecture
+
+- **Transport**: stdio (standard MCP transport for local AI assistants)
+- **Tools**: Read-only MCP tools for listing and retrieving issues
+- **Storage**: Local filesystem (`.skippr` directory)
+- **Validation**: Zod schemas for runtime type safety
+- **Testing**: Vitest with comprehensive unit tests
 
 ## Testing
 
-Test your MCP server using the MCP Inspector:
+Run the test suite:
+```bash
+npm test
+```
 
+Run tests with coverage:
+```bash
+npm test -- --coverage
+```
+
+Test using MCP Inspector:
 ```bash
 npx @modelcontextprotocol/inspector node dist/index.js
 ```
-
-This opens a web interface to interact with your server's tools and resources.
 
 ## Troubleshooting
 
@@ -292,26 +217,10 @@ This opens a web interface to interact with your server's tools and resources.
 
 ### Client can't connect
 - Verify the absolute path in your configuration
-- Check file permissions
+- Check file permissions on the dist directory
 - Look for errors in the MCP client logs
-
-### Tools not appearing
-- Ensure tools are properly registered in `ListToolsRequestSchema`
-- Check that tool handlers are implemented in `CallToolRequestSchema`
 - Restart your MCP client after configuration changes
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
 
 ## License
 
 ISC
-
-## Support
-
-For issues and questions, please open an issue on the GitHub repository.

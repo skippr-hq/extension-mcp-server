@@ -1,0 +1,13 @@
+{
+  "id": "223e4567-e89b-12d3-a456-426614174001",
+  "url": "https://example.com/page",
+  "state": "completed",
+  "workspaceId": "323e4567-e89b-12d3-a456-426614174001",
+  "projectId": "423e4567-e89b-12d3-a456-426614174001",
+  "agentProgress": {
+    "total": 7,
+    "completed": 7
+  },
+  "createdAt": "2025-09-30T10:00:00.000Z",
+  "updatedAt": "2025-09-30T10:30:00.000Z"
+}
