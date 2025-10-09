@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { readIssueFile } from '../utils/file-reader.js';
+import { readIssueFile } from '../utils/issues-reader.js';
 
 // Input schema for the tool
 export const GetIssueInputSchema = z.object({

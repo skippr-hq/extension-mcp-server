@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { findAllIssues, readIssueFile } from '../utils/file-reader.js';
+import { findAllIssues, readIssueFile } from '../utils/issues-reader.js';
 import { IssueSeveritySchema, AgentTypeSchema } from '../schemas/index.js';
 import type { IssueSummary } from '../types/index.js';
 

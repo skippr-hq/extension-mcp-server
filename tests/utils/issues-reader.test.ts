@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { join } from 'path';
-import { findAllIssues, readIssueFile, readReviewMetadata, listReviews } from '../../src/utils/file-reader.js';
+import { findAllIssues, readIssueFile, readReviewMetadata, listReviews } from '../../src/utils/issues-reader.js';
 
 const FIXTURES_DIR = join(__dirname, '..', 'fixtures');
 
