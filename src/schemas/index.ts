@@ -6,8 +6,6 @@
 import { z } from 'zod';
 
 // Enums
-export const ReviewStateSchema = z.enum(['queued', 'processing', 'completed', 'failed']);
-
 export const IssueSeveritySchema = z.enum(['critical', 'high', 'medium', 'low', 'info']);
 
 export const AgentTypeSchema = z.enum(['ux', 'a11y', 'pm', 'pmm', 'legal', 'content', 'users']);
@@ -24,23 +22,6 @@ export const IssueActionsSchema = z.object({
   agent_prompt: z.string().optional(),
 });
 
-// Agent progress schema
-export const AgentProgressSchema = z.object({
-  total: z.number(),
-  completed: z.number().optional(),
-});
-
-// Review schema
-export const ReviewSchema = z.object({
-  id: z.string().uuid(),
-  url: z.string().url(),
-  state: ReviewStateSchema,
-  projectId: z.string().uuid().optional(),
-  workspaceId: z.string().uuid(),
-  agentProgress: AgentProgressSchema.optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
 
 // Issue schema (full)
 export const IssueSchema = z.object({
@@ -89,14 +70,19 @@ export const IssueFrontmatterSchema = z.object({
   updatedAt: z.string().optional(),
 });
 
-// Review metadata file schema (for metadata.json)
-export const ReviewMetadataSchema = z.object({
-  id: z.string().uuid(),
-  url: z.string().url(),
-  state: ReviewStateSchema,
-  projectId: z.string().uuid().optional(),
-  workspaceId: z.string().uuid(),
-  agentProgress: AgentProgressSchema.optional(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+// Write issue message schema (from WebSocket)
+export const WriteIssueMessageSchema = z.object({
+  type: z.string(),
+  reviewId: z.string().uuid(),
+  issueId: z.string().uuid(),
+  title: z.string(),
+  severity: IssueSeveritySchema,
+  resolved: z.boolean().optional(),
+  agentTypes: z.array(AgentTypeSchema),
+  elementMetadata: ElementMetadataSchema.optional(),
+  details: z.string(),
+  agentPrompt: z.string(),
+  ticket: z.string().optional(),
+  timestamp: z.number(),
 });
+

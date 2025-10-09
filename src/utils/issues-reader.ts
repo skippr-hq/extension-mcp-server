@@ -1,13 +1,11 @@
 /**
  * File reader utilities for Skippr .skippr directory structure
- * Handles reading review metadata and issue markdown files
+ * Handles reading issue markdown files from reviews
  */
 
 import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { parseIssueFrontmatter, type ParsedIssueFrontmatter } from './frontmatter-parser.js';
-import { ReviewMetadataSchema } from '../schemas/index.js';
-import type { Review } from '../types/index.js';
 
 /**
  * Find all issue files in the .skippr directory
@@ -74,37 +72,3 @@ export async function readIssueFile(
   };
 }
 
-/**
- * Read review metadata from metadata.json
- * @param rootDir - Project root directory
- * @param reviewId - Review UUID
- * @returns Parsed review metadata
- */
-export async function readReviewMetadata(rootDir: string, reviewId: string): Promise<Review> {
-  const filePath = join(rootDir, '.skippr', 'reviews', reviewId, 'metadata.json');
-
-  const content = await readFile(filePath, 'utf-8');
-  const data = JSON.parse(content);
-
-  // Validate against schema
-  return ReviewMetadataSchema.parse(data);
-}
-
-/**
- * List all review IDs in the .skippr directory
- * @param rootDir - Project root directory
- * @returns Array of review UUIDs
- */
-export async function listReviews(rootDir: string): Promise<string[]> {
-  const skipprDir = join(rootDir, '.skippr', 'reviews');
-
-  try {
-    await stat(skipprDir);
-  } catch {
-    return [];
-  }
-
-  const entries = await readdir(skipprDir, { withFileTypes: true });
-
-  return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
-}

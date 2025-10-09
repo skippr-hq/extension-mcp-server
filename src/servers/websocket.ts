@@ -3,15 +3,18 @@
  */
 
 import { WebSocketServer, WebSocket } from 'ws';
-import { writeIssue, validateWriteIssueMessage } from '../utils/issues-writer.js';
+import { writeIssue } from '../utils/issues-writer.js';
+import { WriteIssueMessageSchema } from '../schemas/index.js';
 
 let wss: WebSocketServer | null = null;
+let serverRootDir: string | null = null;
 
-export function createWebSocketServer(port: number): WebSocketServer {
+export function createWebSocketServer(port: number, rootDir: string): WebSocketServer {
   if (wss) {
     return wss;
   }
 
+  serverRootDir = rootDir;
   wss = new WebSocketServer({ port });
 
   wss.on('connection', (ws: WebSocket) => {
@@ -24,20 +27,21 @@ export function createWebSocketServer(port: number): WebSocketServer {
         const parsedMessage = JSON.parse(messageStr);
 
         if (parsedMessage.type === 'write_issue') {
-          if (validateWriteIssueMessage(parsedMessage)) {
-            await writeIssue(parsedMessage);
+          try {
+            const validatedMessage = WriteIssueMessageSchema.parse(parsedMessage);
+            await writeIssue(serverRootDir!, validatedMessage);
             ws.send(
               JSON.stringify({
                 status: 'success',
-                issueId: parsedMessage.issueId,
+                issueId: validatedMessage.issueId,
                 message: 'Issue saved successfully',
               })
             );
-          } else {
+          } catch (validationError) {
             ws.send(
               JSON.stringify({
                 status: 'error',
-                message: 'Invalid message format',
+                message: validationError instanceof Error ? validationError.message : 'Invalid message format',
               })
             );
           }

@@ -1,11 +1,13 @@
 # Skippr MCP Server
 
-A Model Context Protocol (MCP) server that provides read-only access to Skippr product review issues stored in `.skippr` directories. This enables AI coding agents (Claude, Cursor, Windsurf) to read and analyze Skippr issues from your local project.
+A Model Context Protocol (MCP) server that bridges Skippr's product review insights with AI coding agents. Receive issues from the Skippr browser extension via WebSocket and access them through MCP tools in your IDE.
 
 ## Features
 
-- **Read-Only MCP Tools**: List and retrieve Skippr issues via stdio transport
-- **Local File Access**: Issues stored as markdown files in `.skippr` directory
+- **Dual Transport Architecture**: Stdio MCP transport + WebSocket server in one process
+- **Browser Extension Integration**: Receives issues from Skippr extension via WebSocket
+- **MCP Tools**: List and retrieve Skippr issues in Claude Code, Cursor, Windsurf
+- **Local File Storage**: Issues stored as markdown files in `.skippr` directory
 - **Filtering Support**: Filter issues by review, severity, agent type, or resolved status
 - **Type Safe**: Full TypeScript with Zod runtime validation
 - **Test Coverage**: Comprehensive test suite with Vitest
@@ -48,6 +50,34 @@ npm run typecheck
 
 ## Adding to MCP Clients
 
+### Claude Code (Recommended)
+
+The easiest way to install in Claude Code:
+
+```bash
+# Install for local development
+claude mcp add skippr \
+  -e SKIPPR_ROOT_DIR="$(pwd)" \
+  -e WS_PORT="4040" \
+  -- npx -y tsx /absolute/path/to/skippr-mcp/src/server.ts
+
+# Or use the built version
+claude mcp add skippr \
+  -e SKIPPR_ROOT_DIR="/path/to/your/project" \
+  -e WS_PORT="4040" \
+  -- node /absolute/path/to/skippr-mcp/dist/server.js
+```
+
+**Environment Variables:**
+- `SKIPPR_ROOT_DIR` (required): Your project root directory where `.skippr/` folder will be created
+- `WS_PORT` (optional): WebSocket server port, defaults to 4040
+
+**Verify installation:**
+```bash
+claude mcp list
+# Should show: skippr: npx - ✓ Connected
+```
+
 ### Claude Desktop
 
 Add to your Claude Desktop configuration file:
@@ -59,28 +89,21 @@ Add to your Claude Desktop configuration file:
 ```json
 {
   "mcpServers": {
-    "skippr-mcp": {
+    "skippr": {
       "command": "node",
-      "args": ["/absolute/path/to/skippr-mcp/dist/index.js"],
-      "env": {}
+      "args": ["/absolute/path/to/skippr-mcp/dist/server.js"],
+      "env": {
+        "SKIPPR_ROOT_DIR": "/path/to/your/project",
+        "WS_PORT": "4040"
+      }
     }
   }
 }
 ```
 
-### Other MCP Clients
+### Cursor / Windsurf
 
-Most MCP clients follow a similar configuration pattern:
-
-```json
-{
-  "servers": [{
-    "name": "skippr-mcp",
-    "command": "node",
-    "args": ["/absolute/path/to/skippr-mcp/dist/index.js"]
-  }]
-}
-```
+Similar stdio-based configuration. Check your IDE's MCP documentation for the specific config file location.
 
 ## Available Tools
 
@@ -89,11 +112,12 @@ Most MCP clients follow a similar configuration pattern:
 Lists all available Skippr issues with optional filtering.
 
 **Parameters:**
-- `rootDir` (required): Project root directory containing `.skippr` folder
 - `reviewId` (optional): Filter by review UUID
-- `severity` (optional): Filter by severity level (`low`, `medium`, `high`, `critical`)
-- `agentType` (optional): Filter by agent type (`ux`, `a11y`, `content`, `pmm`, `performance`, `seo`, `security`)
+- `severity` (optional): Filter by severity level (`critical`, `high`, `medium`, `low`, `info`)
+- `agentType` (optional): Filter by agent type (`ux`, `a11y`, `pm`, `pmm`, `legal`, `content`, `users`)
 - `resolved` (optional): Filter by resolved status (boolean)
+
+> **Note**: `rootDir` is configured once via environment variable, not passed per tool call
 
 **Returns:**
 ```json
@@ -117,9 +141,10 @@ Lists all available Skippr issues with optional filtering.
 Gets full details for a specific issue including raw markdown content.
 
 **Parameters:**
-- `rootDir` (required): Project root directory containing `.skippr` folder
 - `reviewId` (required): Review UUID
 - `issueId` (required): Issue UUID
+
+> **Note**: `rootDir` is configured once via environment variable, not passed per tool call
 
 **Returns:**
 ```json
@@ -185,9 +210,23 @@ Optional rich user story format...
 
 ## Architecture
 
-- **Transport**: stdio (standard MCP transport for local AI assistants)
-- **Tools**: Read-only MCP tools for listing and retrieving issues
-- **Storage**: Local filesystem (`.skippr` directory)
+Following the [BrowserMCP](https://github.com/BrowserMCP/mcp) pattern, this server runs two transports in a single Node.js process:
+
+1. **Stdio Transport** (MCP): Communicates with AI coding agents (Claude Code, Cursor, etc.)
+2. **WebSocket Server** (Port 4040): Receives issues from Skippr browser extension
+
+**Data Flow:**
+```
+Skippr Extension → WebSocket → writes to .skippr/
+Claude Code      → Stdio MCP → reads from .skippr/
+```
+
+Both transports share the same `.skippr/` directory via the filesystem, enabling seamless integration between issue discovery (extension) and issue resolution (AI agent).
+
+**Key Components:**
+- **Transport**: Stdio for MCP, WebSocket for extension
+- **Tools**: MCP tools for listing and retrieving issues
+- **Storage**: Local filesystem (`.skippr/reviews/{uuid}/issues/{uuid}.md`)
 - **Validation**: Zod schemas for runtime type safety
 - **Testing**: Vitest with comprehensive unit tests
 

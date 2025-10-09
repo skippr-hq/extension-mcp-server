@@ -1,6 +1,7 @@
 {
   "name": "skippr-mcp",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "start": "node dist/server.js",
@@ -22,16 +23,14 @@
   "description": "MCP server for Skippr integration",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
-    "@types/ws": "^8.18.1",
     "dotenv": "^16.4.7",
-    "express": "^5.0.1",
     "gray-matter": "^4.0.3",
     "ws": "^8.18.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/express": "^5.0.1",
     "@types/node": "^24.7.0",
+    "@types/ws": "^8.18.1",
     "@vitest/ui": "^3.2.4",
     "memfs": "^4.49.0",
     "tsx": "^4.20.6",
