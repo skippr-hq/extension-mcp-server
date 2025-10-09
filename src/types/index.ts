@@ -3,33 +3,9 @@
  * Based on Supabase database schema
  */
 
-export type ReviewState = 'queued' | 'processing' | 'completed' | 'failed';
-
 export type IssueSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info';
 
 export type AgentType = 'ux' | 'a11y' | 'pm' | 'pmm' | 'legal' | 'content' | 'users';
-
-/**
- * Review metadata from database
- */
-export interface Review {
-  id: string;
-  url: string;
-  state: ReviewState;
-  projectId?: string;
-  workspaceId: string;
-  agentProgress?: AgentProgress;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/**
- * Agent progress and scoring data
- */
-export interface AgentProgress {
-  total: number;
-  completed?: number;
-}
 
 /**
  * Issue from database
@@ -85,4 +61,22 @@ export interface ListIssuesOptions {
   severity?: IssueSeverity;
   agentType?: AgentType;
   resolved?: boolean;
+}
+
+/**
+ * Write issue message from WebSocket (Skippr extension)
+ */
+export interface WriteIssueMessage {
+  type: string;
+  reviewId: string;
+  issueId: string;
+  title: string;
+  severity: IssueSeverity;
+  resolved?: boolean;
+  agentTypes: AgentType[];
+  elementMetadata?: ElementMetadata;
+  details: string;
+  agentPrompt: string;
+  ticket?: string;
+  timestamp: number;
 }
