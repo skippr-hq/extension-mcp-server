@@ -10,9 +10,9 @@ describe('file-reader', () => {
       const issues = await findAllIssues(FIXTURES_DIR);
 
       expect(issues).toHaveLength(3);
-      expect(issues).toContain('.skippr/reviews/review-123/issues/7b8efc72-0122-4589-bbaa-07fb53ec0e26.md');
-      expect(issues).toContain('.skippr/reviews/review-123/issues/aaf21366-a1f7-4a89-81cf-6f4596565772.md');
-      expect(issues).toContain('.skippr/reviews/review-456/issues/00e2a583-dd11-4d19-ba94-67c536fbb554.md');
+      expect(issues).toContain('.skippr/reviews/223e4567-e89b-12d3-a456-426614174001/issues/7b8efc72-0122-4589-bbaa-07fb53ec0e26.md');
+      expect(issues).toContain('.skippr/reviews/223e4567-e89b-12d3-a456-426614174001/issues/aaf21366-a1f7-4a89-81cf-6f4596565772.md');
+      expect(issues).toContain('.skippr/reviews/223e4567-e89b-12d3-a456-426614174002/issues/00e2a583-dd11-4d19-ba94-67c536fbb554.md');
     });
 
     it('should return empty array if .skippr directory does not exist', async () => {
@@ -24,7 +24,7 @@ describe('file-reader', () => {
 
   describe('readIssueFile', () => {
     it('should read and parse an issue file', async () => {
-      const result = await readIssueFile(FIXTURES_DIR, 'review-123', '7b8efc72-0122-4589-bbaa-07fb53ec0e26');
+      const result = await readIssueFile(FIXTURES_DIR, '223e4567-e89b-12d3-a456-426614174001', '7b8efc72-0122-4589-bbaa-07fb53ec0e26');
 
       expect(result.frontmatter.id).toBe('7b8efc72-0122-4589-bbaa-07fb53ec0e26');
       expect(result.frontmatter.reviewId).toBe('223e4567-e89b-12d3-a456-426614174001');
@@ -42,11 +42,11 @@ describe('file-reader', () => {
     });
 
     it('should throw error if file does not exist', async () => {
-      await expect(readIssueFile(FIXTURES_DIR, 'review-123', 'nonexistent')).rejects.toThrow();
+      await expect(readIssueFile(FIXTURES_DIR, '223e4567-e89b-12d3-a456-426614174001', 'nonexistent')).rejects.toThrow();
     });
 
     it('should read issue with multiple agent types', async () => {
-      const result = await readIssueFile(FIXTURES_DIR, 'review-456', '00e2a583-dd11-4d19-ba94-67c536fbb554');
+      const result = await readIssueFile(FIXTURES_DIR, '223e4567-e89b-12d3-a456-426614174002', '00e2a583-dd11-4d19-ba94-67c536fbb554');
 
       expect(result.frontmatter.agentTypes).toEqual(['content', 'pmm']);
       expect(result.frontmatter.resolved).toBe(true);
@@ -55,7 +55,7 @@ describe('file-reader', () => {
 
   describe('readReviewMetadata', () => {
     it('should read and parse review metadata', async () => {
-      const review = await readReviewMetadata(FIXTURES_DIR, 'review-123');
+      const review = await readReviewMetadata(FIXTURES_DIR, '223e4567-e89b-12d3-a456-426614174001');
 
       expect(review.id).toBe('223e4567-e89b-12d3-a456-426614174001');
       expect(review.url).toBe('https://example.com/page');
@@ -69,7 +69,7 @@ describe('file-reader', () => {
     });
 
     it('should handle review without projectId', async () => {
-      const review = await readReviewMetadata(FIXTURES_DIR, 'review-456');
+      const review = await readReviewMetadata(FIXTURES_DIR, '223e4567-e89b-12d3-a456-426614174002');
 
       expect(review.id).toBe('223e4567-e89b-12d3-a456-426614174002');
       expect(review.projectId).toBeUndefined();
@@ -86,8 +86,8 @@ describe('file-reader', () => {
       const reviews = await listReviews(FIXTURES_DIR);
 
       expect(reviews).toHaveLength(2);
-      expect(reviews).toContain('review-123');
-      expect(reviews).toContain('review-456');
+      expect(reviews).toContain('223e4567-e89b-12d3-a456-426614174001');
+      expect(reviews).toContain('223e4567-e89b-12d3-a456-426614174002');
     });
 
     it('should return empty array if .skippr directory does not exist', async () => {
