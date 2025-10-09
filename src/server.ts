@@ -28,7 +28,7 @@ const wsPort = parseInt(process.env.WS_PORT || "4040", 10);
 
 // Start Express server
 app.listen(port, () => {
-  console.log(`MCP server is running on port ${port}`);
+  // console.log(JSON.stringify({"log": `MCP server is running on port ${port}`}));
 });
 
 // Start WebSocket server

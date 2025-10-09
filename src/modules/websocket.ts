@@ -5,18 +5,18 @@ let wss: WebSocketServer | null = null;
 
 export function createWebSocketServer(port: number): WebSocketServer {
   if (wss) {
-    console.log('WebSocket server already running');
+    // console.log('WebSocket server already running');
     return wss;
   }
 
   wss = new WebSocketServer({ port });
 
   wss.on('connection', (ws: WebSocket) => {
-    console.log('New WebSocket connection established');
+    // console.log('New WebSocket connection established');
 
     ws.on('message', async (data: Buffer) => {
       const messageStr = data.toString();
-      console.log('Received WebSocket message:', messageStr);
+      // console.log('Received WebSocket message:', messageStr);
 
       try {
         const parsedMessage = JSON.parse(messageStr);
@@ -69,14 +69,14 @@ export function createWebSocketServer(port: number): WebSocketServer {
     console.error('WebSocket server error:', error);
   });
 
-  console.log(`WebSocket server listening on port ${port}`);
+  // console.log(`WebSocket server listening on port ${port}`);
   return wss;
 }
 
 export function closeWebSocketServer(): void {
   if (wss) {
     wss.close(() => {
-      console.log('WebSocket server closed');
+      // console.log('WebSocket server closed');
     });
     wss = null;
   }
