@@ -1,4 +1,5 @@
 import { WebSocketServer, WebSocket } from 'ws';
+import { handleIssueMessage, validateMessage } from './issueHandler';
 
 let wss: WebSocketServer | null = null;
 
@@ -13,12 +14,43 @@ export function createWebSocketServer(port: number): WebSocketServer {
   wss.on('connection', (ws: WebSocket) => {
     console.log('New WebSocket connection established');
 
-    ws.on('message', (data: Buffer) => {
-      const message = data.toString();
-      console.log('Received WebSocket message:', message);
+    ws.on('message', async (data: Buffer) => {
+      const messageStr = data.toString();
+      console.log('Received WebSocket message:', messageStr);
 
-      // Simple echo for now - can be extended later
-      ws.send(`Echo: ${message}`);
+      try {
+        const parsedMessage = JSON.parse(messageStr);
+
+        // Handle apply_fix messages
+        if (parsedMessage.type === 'apply_fix') {
+          if (validateMessage(parsedMessage)) {
+            await handleIssueMessage(parsedMessage);
+            ws.send(JSON.stringify({
+              status: 'success',
+              issueId: parsedMessage.issueId,
+              message: 'Issue saved successfully'
+            }));
+          } else {
+            ws.send(JSON.stringify({
+              status: 'error',
+              message: 'Invalid message format'
+            }));
+          }
+        } else {
+          // Handle other message types
+          ws.send(JSON.stringify({
+            status: 'received',
+            type: parsedMessage.type,
+            message: 'Message received'
+          }));
+        }
+      } catch (error) {
+        console.error('Error processing message:', error);
+        ws.send(JSON.stringify({
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Failed to process message'
+        }));
+      }
     });
 
     ws.on('error', (error: Error) => {
