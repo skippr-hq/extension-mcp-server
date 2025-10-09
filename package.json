@@ -9,14 +9,20 @@
     "inspector": "npx @modelcontextprotocol/inspector dist/index.js",
     "test": "jest"
   },
-  "keywords": ["mcp", "skippr", "model-context-protocol"],
+  "keywords": [
+    "mcp",
+    "skippr",
+    "model-context-protocol"
+  ],
   "author": "",
   "license": "ISC",
   "description": "MCP server for Skippr integration",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
+    "@types/ws": "^8.18.1",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
+    "ws": "^8.18.3",
     "zod": "^3.25.76"
   },
   "devDependencies": {
