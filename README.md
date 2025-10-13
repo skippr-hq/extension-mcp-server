@@ -56,7 +56,7 @@ The easiest way to install in Claude Code:
 
 ```bash
 # Install for local development
-claude mcp add --transport stdio skippr --env WS_PORT=4040 --env SKIPPR_ROOT_DIR=/Users/<username>/ -- node /Users/<username>/Desktop/Projects/skippr-mcp/dist/server.js
+claude mcp add --transport stdio skippr --env WS_PORT=4040 --env SKIPPR_ROOT_DIR=/Users/<username>/ -- node /path/to/your/skippr-project/dist/server.js
 
 # Or use the built version
 claude mcp add skippr \
