@@ -9,11 +9,11 @@ import { parseIssueFrontmatter, type ParsedIssueFrontmatter } from './frontmatte
 
 /**
  * Find all issue files in the .skippr directory
- * @param rootDir - Project root directory containing .skippr folder
- * @returns Array of issue file paths relative to rootDir
+ * @param workingDir - Working directory of the coding agent (project root containing .skippr folder)
+ * @returns Array of issue file paths relative to workingDir
  */
-export async function findAllIssues(rootDir: string): Promise<string[]> {
-  const skipprDir = join(rootDir, '.skippr', 'reviews');
+export async function findAllIssues(workingDir: string): Promise<string[]> {
+  const skipprDir = join(workingDir, '.skippr', 'reviews');
   const issueFiles: string[] = [];
 
   try {
@@ -51,17 +51,17 @@ export async function findAllIssues(rootDir: string): Promise<string[]> {
 
 /**
  * Read and parse a single issue file
- * @param rootDir - Project root directory
+ * @param workingDir - Working directory of the coding agent
  * @param reviewId - Review UUID
  * @param issueId - Issue UUID
  * @returns Parsed issue with frontmatter and raw markdown content
  */
 export async function readIssueFile(
-  rootDir: string,
+  workingDir: string,
   reviewId: string,
   issueId: string
 ): Promise<{ frontmatter: ParsedIssueFrontmatter; markdown: string }> {
-  const filePath = join(rootDir, '.skippr', 'reviews', reviewId, 'issues', `${issueId}.md`);
+  const filePath = join(workingDir, '.skippr', 'reviews', reviewId, 'issues', `${issueId}.md`);
 
   const content = await readFile(filePath, 'utf-8');
   const parsed = parseIssueFrontmatter(content);

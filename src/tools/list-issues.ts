@@ -10,7 +10,7 @@ import type { IssueSummary } from '../types/index.js';
 
 // Input schema for the tool
 export const ListIssuesInputSchema = z.object({
-  rootDir: z.string().describe('Project root directory containing .skippr folder'),
+  workingDir: z.string().describe('Working directory of the coding agent (project root containing .skippr folder)'),
   reviewId: z.string().uuid().optional().describe('Filter by review ID'),
   severity: IssueSeveritySchema.optional().describe('Filter by severity level'),
   agentType: AgentTypeSchema.optional().describe('Filter by agent type'),
@@ -42,10 +42,10 @@ export type ListIssuesOutput = z.infer<typeof ListIssuesOutputSchema>;
 export async function listIssues(input: ListIssuesInput): Promise<ListIssuesOutput> {
   // Validate input
   const validated = ListIssuesInputSchema.parse(input);
-  const { rootDir, reviewId, severity, agentType, resolved } = validated;
+  const { workingDir, reviewId, severity, agentType, resolved } = validated;
 
   // Find all issue file paths
-  const issueFiles = await findAllIssues(rootDir);
+  const issueFiles = await findAllIssues(workingDir);
 
   // Read and parse each issue file
   const issues: IssueSummary[] = [];
@@ -59,7 +59,7 @@ export async function listIssues(input: ListIssuesInput): Promise<ListIssuesOutp
     const fileIssueId = fileName.replace('.md', '');
 
     try {
-      const { frontmatter } = await readIssueFile(rootDir, fileReviewId, fileIssueId);
+      const { frontmatter } = await readIssueFile(workingDir, fileReviewId, fileIssueId);
 
       // Apply filters
       if (reviewId && frontmatter.reviewId !== reviewId) continue;

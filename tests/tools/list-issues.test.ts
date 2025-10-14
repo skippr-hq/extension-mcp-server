@@ -6,7 +6,7 @@ const FIXTURES_DIR = join(__dirname, '..', 'fixtures');
 
 describe('list-issues tool', () => {
   it('should list all issues without filters', async () => {
-    const result = await listIssues({ rootDir: FIXTURES_DIR });
+    const result = await listIssues({ workingDir: FIXTURES_DIR });
 
     expect(result.totalCount).toBe(3);
     expect(result.issues).toHaveLength(3);
@@ -22,7 +22,7 @@ describe('list-issues tool', () => {
 
   it('should filter by reviewId', async () => {
     const result = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       reviewId: '223e4567-e89b-12d3-a456-426614174001',
     });
 
@@ -32,7 +32,7 @@ describe('list-issues tool', () => {
 
   it('should filter by severity', async () => {
     const result = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       severity: 'high',
     });
 
@@ -43,7 +43,7 @@ describe('list-issues tool', () => {
 
   it('should filter by agentType', async () => {
     const result = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       agentType: 'a11y',
     });
 
@@ -53,7 +53,7 @@ describe('list-issues tool', () => {
 
   it('should filter by resolved status', async () => {
     const resultResolved = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       resolved: true,
     });
 
@@ -61,7 +61,7 @@ describe('list-issues tool', () => {
     expect(resultResolved.issues[0].resolved).toBe(true);
 
     const resultUnresolved = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       resolved: false,
     });
 
@@ -71,7 +71,7 @@ describe('list-issues tool', () => {
 
   it('should apply multiple filters', async () => {
     const result = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       reviewId: '223e4567-e89b-12d3-a456-426614174001',
       resolved: false,
     });
@@ -84,7 +84,7 @@ describe('list-issues tool', () => {
   });
 
   it('should return empty array if no .skippr directory exists', async () => {
-    const result = await listIssues({ rootDir: '/nonexistent/path' });
+    const result = await listIssues({ workingDir: '/nonexistent/path' });
 
     expect(result.totalCount).toBe(0);
     expect(result.issues).toEqual([]);
@@ -92,7 +92,7 @@ describe('list-issues tool', () => {
 
   it('should return empty array if no issues match filters', async () => {
     const result = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       severity: 'critical',
     });
 
@@ -102,7 +102,7 @@ describe('list-issues tool', () => {
 
   it('should handle issues with multiple agent types', async () => {
     const result = await listIssues({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       agentType: 'content',
     });
 
@@ -115,14 +115,14 @@ describe('list-issues tool', () => {
   it('should validate input schema', async () => {
     await expect(
       listIssues({
-        rootDir: FIXTURES_DIR,
+        workingDir: FIXTURES_DIR,
         reviewId: 'not-a-uuid',
       } as any)
     ).rejects.toThrow();
 
     await expect(
       listIssues({
-        rootDir: FIXTURES_DIR,
+        workingDir: FIXTURES_DIR,
         severity: 'invalid',
       } as any)
     ).rejects.toThrow();

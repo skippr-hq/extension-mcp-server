@@ -56,18 +56,17 @@ The easiest way to install in Claude Code:
 
 ```bash
 # Install for local development
-claude mcp add --transport stdio skippr --env WS_PORT=4040 --env SKIPPR_ROOT_DIR=/Users/<username>/ -- node /path/to/your/skippr-project/dist/server.js
+claude mcp add --transport stdio skippr --env WS_PORT=4040 -- node /path/to/your/skippr-project/dist/server.js
 
 # Or use the built version
 claude mcp add skippr \
-  -e SKIPPR_ROOT_DIR="/path/to/store/.skippr/dir/" \
   -e WS_PORT="4040" \
   -- node /absolute/path/to/skippr-mcp/dist/server.js
 ```
 
 **Environment Variables:**
-- `SKIPPR_ROOT_DIR` (required): Your project root directory where `.skippr/` folder will be created
 - `WS_PORT` (optional): WebSocket server port, defaults to 4040
+- `WS_ROOT_DIR` (optional): Directory for WebSocket server to write issues from browser extension, defaults to `~/skippr-issues`
 
 **Verify installation:**
 ```bash
@@ -90,7 +89,6 @@ Add to your Claude Desktop configuration file:
       "command": "node",
       "args": ["/absolute/path/to/skippr-mcp/dist/server.js"],
       "env": {
-        "SKIPPR_ROOT_DIR": "/path/to/your/project",
         "WS_PORT": "4040"
       }
     }
@@ -109,12 +107,11 @@ Similar stdio-based configuration. Check your IDE's MCP documentation for the sp
 Lists all available Skippr issues with optional filtering.
 
 **Parameters:**
+- `workingDir` (required): Working directory of the coding agent (project root containing .skippr folder)
 - `reviewId` (optional): Filter by review UUID
 - `severity` (optional): Filter by severity level (`critical`, `high`, `medium`, `low`, `info`)
 - `agentType` (optional): Filter by agent type (`ux`, `a11y`, `pm`, `pmm`, `legal`, `content`, `users`)
 - `resolved` (optional): Filter by resolved status (boolean)
-
-> **Note**: `rootDir` is configured once via environment variable, not passed per tool call
 
 **Returns:**
 ```json
@@ -138,10 +135,9 @@ Lists all available Skippr issues with optional filtering.
 Gets full details for a specific issue including raw markdown content.
 
 **Parameters:**
+- `workingDir` (required): Working directory of the coding agent (project root containing .skippr folder)
 - `reviewId` (required): Review UUID
 - `issueId` (required): Issue UUID
-
-> **Note**: `rootDir` is configured once via environment variable, not passed per tool call
 
 **Returns:**
 ```json

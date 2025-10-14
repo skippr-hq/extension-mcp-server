@@ -7,7 +7,7 @@ const FIXTURES_DIR = join(__dirname, '..', 'fixtures');
 describe('get-issue tool', () => {
   it('should get full issue details with markdown', async () => {
     const result = await getIssue({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       reviewId: '223e4567-e89b-12d3-a456-426614174001',
       issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
     });
@@ -32,7 +32,7 @@ describe('get-issue tool', () => {
 
   it('should get issue without element metadata', async () => {
     const result = await getIssue({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       reviewId: '223e4567-e89b-12d3-a456-426614174002',
       issueId: '00e2a583-dd11-4d19-ba94-67c536fbb554',
     });
@@ -45,7 +45,7 @@ describe('get-issue tool', () => {
 
   it('should get issue with multiple agent types', async () => {
     const result = await getIssue({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       reviewId: '223e4567-e89b-12d3-a456-426614174002',
       issueId: '00e2a583-dd11-4d19-ba94-67c536fbb554',
     });
@@ -55,7 +55,7 @@ describe('get-issue tool', () => {
 
   it('should get resolved issue', async () => {
     const result = await getIssue({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       reviewId: '223e4567-e89b-12d3-a456-426614174002',
       issueId: '00e2a583-dd11-4d19-ba94-67c536fbb554',
     });
@@ -66,7 +66,7 @@ describe('get-issue tool', () => {
   it('should throw error if issue file does not exist', async () => {
     await expect(
       getIssue({
-        rootDir: FIXTURES_DIR,
+        workingDir: FIXTURES_DIR,
         reviewId: '223e4567-e89b-12d3-a456-426614174001',
         issueId: 'nonexistent-uuid-1234-5678-9012-123456789012',
       })
@@ -76,7 +76,7 @@ describe('get-issue tool', () => {
   it('should throw error if review does not exist', async () => {
     await expect(
       getIssue({
-        rootDir: FIXTURES_DIR,
+        workingDir: FIXTURES_DIR,
         reviewId: 'nonexistent-uuid-1234-5678-9012-123456789012',
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
       })
@@ -86,7 +86,7 @@ describe('get-issue tool', () => {
   it('should validate input schema', async () => {
     await expect(
       getIssue({
-        rootDir: FIXTURES_DIR,
+        workingDir: FIXTURES_DIR,
         reviewId: 'not-a-uuid',
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
       } as any)
@@ -94,7 +94,7 @@ describe('get-issue tool', () => {
 
     await expect(
       getIssue({
-        rootDir: FIXTURES_DIR,
+        workingDir: FIXTURES_DIR,
         reviewId: '223e4567-e89b-12d3-a456-426614174001',
         issueId: 'not-a-uuid',
       } as any)
@@ -103,7 +103,7 @@ describe('get-issue tool', () => {
 
   it('should preserve exact markdown formatting', async () => {
     const result = await getIssue({
-      rootDir: FIXTURES_DIR,
+      workingDir: FIXTURES_DIR,
       reviewId: '223e4567-e89b-12d3-a456-426614174001',
       issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
     });

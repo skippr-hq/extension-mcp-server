@@ -73,6 +73,7 @@ export const IssueFrontmatterSchema = z.object({
 // Write issue message schema (from WebSocket)
 export const WriteIssueMessageSchema = z.object({
   type: z.string(),
+  local_project_path: z.string(),
   reviewId: z.string().uuid(),
   issueId: z.string().uuid(),
   title: z.string(),
