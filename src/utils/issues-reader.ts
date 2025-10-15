@@ -6,14 +6,15 @@
 import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { parseIssueFrontmatter, type ParsedIssueFrontmatter } from './frontmatter-parser.js';
+import { getWorkingDirectory } from './working-directory.js';
 
 /**
  * Find all issue files in the .skippr directory
- * @param workingDir - Working directory of the coding agent (project root containing .skippr folder)
- * @returns Array of issue file paths relative to workingDir
+ * @param projectId - Project identifier
+ * @returns Array of issue file paths relative to .skippr directory
  */
-export async function findAllIssues(workingDir: string): Promise<string[]> {
-  const skipprDir = join(workingDir, '.skippr', 'reviews');
+export async function findAllIssues(projectId: string): Promise<string[]> {
+  const skipprDir = join(getWorkingDirectory(), '.skippr', 'projects', projectId, 'reviews');
   const issueFiles: string[] = [];
 
   try {
@@ -37,7 +38,7 @@ export async function findAllIssues(workingDir: string): Promise<string[]> {
 
       for (const filename of issueFilenames) {
         if (filename.endsWith('.md')) {
-          issueFiles.push(join('.skippr', 'reviews', reviewDir.name, 'issues', filename));
+          issueFiles.push(join('.skippr', 'projects', projectId, 'reviews', reviewDir.name, 'issues', filename));
         }
       }
     } catch {
@@ -51,17 +52,17 @@ export async function findAllIssues(workingDir: string): Promise<string[]> {
 
 /**
  * Read and parse a single issue file
- * @param workingDir - Working directory of the coding agent
+ * @param projectId - Project identifier
  * @param reviewId - Review UUID
  * @param issueId - Issue UUID
  * @returns Parsed issue with frontmatter and raw markdown content
  */
 export async function readIssueFile(
-  workingDir: string,
+  projectId: string,
   reviewId: string,
   issueId: string
 ): Promise<{ frontmatter: ParsedIssueFrontmatter; markdown: string }> {
-  const filePath = join(workingDir, '.skippr', 'reviews', reviewId, 'issues', `${issueId}.md`);
+  const filePath = join(getWorkingDirectory(), '.skippr', 'projects', projectId, 'reviews', reviewId, 'issues', `${issueId}.md`);
 
   const content = await readFile(filePath, 'utf-8');
   const parsed = parseIssueFrontmatter(content);

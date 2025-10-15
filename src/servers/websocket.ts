@@ -27,7 +27,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
         if (parsedMessage.type === 'write_issue') {
           try {
             const validatedMessage = WriteIssueMessageSchema.parse(parsedMessage);
-            await writeIssue(parsedMessage.local_project_path!, validatedMessage);
+            await writeIssue(validatedMessage.projectId, validatedMessage);
             ws.send(
               JSON.stringify({
                 status: 'success',

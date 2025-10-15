@@ -66,7 +66,6 @@ claude mcp add skippr \
 
 **Environment Variables:**
 - `WS_PORT` (optional): WebSocket server port, defaults to 4040
-- `WS_ROOT_DIR` (optional): Directory for WebSocket server to write issues from browser extension, defaults to `~/skippr-issues`
 
 **Verify installation:**
 ```bash
@@ -102,12 +101,26 @@ Similar stdio-based configuration. Check your IDE's MCP documentation for the sp
 
 ## Available Tools
 
+### `skippr_list_projects`
+
+Lists all available project IDs from the .skippr/projects directory.
+
+**Parameters:** None
+
+**Returns:**
+```json
+{
+  "projects": ["project-1", "project-2"],
+  "totalCount": 2
+}
+```
+
 ### `skippr_list_issues`
 
 Lists all available Skippr issues with optional filtering.
 
 **Parameters:**
-- `workingDir` (required): Working directory of the coding agent (project root containing .skippr folder)
+- `projectId` (required): Project identifier
 - `reviewId` (optional): Filter by review UUID
 - `severity` (optional): Filter by severity level (`critical`, `high`, `medium`, `low`, `info`)
 - `agentType` (optional): Filter by agent type (`ux`, `a11y`, `pm`, `pmm`, `legal`, `content`, `users`)
@@ -135,7 +148,7 @@ Lists all available Skippr issues with optional filtering.
 Gets full details for a specific issue including raw markdown content.
 
 **Parameters:**
-- `workingDir` (required): Working directory of the coding agent (project root containing .skippr folder)
+- `projectId` (required): Project identifier
 - `reviewId` (required): Review UUID
 - `issueId` (required): Issue UUID
 
@@ -161,12 +174,13 @@ Gets full details for a specific issue including raw markdown content.
 ```
 project-root/
 └── .skippr/
-    └── reviews/
-        └── {review-uuid}/
-            ├── metadata.json
-            └── issues/
-                ├── {issue-uuid}.md
-                └── ...
+    └── projects/
+        └── {projectId}/
+            └── reviews/
+                └── {review-uuid}/
+                    └── issues/
+                        ├── {issue-uuid}.md
+                        └── ...
 ```
 
 ## Issue Markdown Format

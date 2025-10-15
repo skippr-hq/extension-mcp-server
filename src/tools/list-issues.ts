@@ -10,7 +10,7 @@ import type { IssueSummary } from '../types/index.js';
 
 // Input schema for the tool
 export const ListIssuesInputSchema = z.object({
-  workingDir: z.string().describe('Working directory of the coding agent (project root containing .skippr folder)'),
+  projectId: z.string().describe('Project identifier'),
   reviewId: z.string().uuid().optional().describe('Filter by review ID'),
   severity: IssueSeveritySchema.optional().describe('Filter by severity level'),
   agentType: AgentTypeSchema.optional().describe('Filter by agent type'),
@@ -42,24 +42,24 @@ export type ListIssuesOutput = z.infer<typeof ListIssuesOutputSchema>;
 export async function listIssues(input: ListIssuesInput): Promise<ListIssuesOutput> {
   // Validate input
   const validated = ListIssuesInputSchema.parse(input);
-  const { workingDir, reviewId, severity, agentType, resolved } = validated;
+  const { projectId, reviewId, severity, agentType, resolved } = validated;
 
   // Find all issue file paths
-  const issueFiles = await findAllIssues(workingDir);
+  const issueFiles = await findAllIssues(projectId);
 
   // Read and parse each issue file
   const issues: IssueSummary[] = [];
 
   for (const filePath of issueFiles) {
     // Extract reviewId and issueId from path
-    // Path format: .skippr/reviews/{reviewId}/issues/{issueId}.md
+    // Path format: .skippr/projects/{projectId}/reviews/{reviewId}/issues/{issueId}.md
     const pathParts = filePath.split('/');
-    const fileReviewId = pathParts[2]; // reviews/{reviewId}
-    const fileName = pathParts[4]; // {issueId}.md
+    const fileReviewId = pathParts[4]; // reviews/{reviewId}
+    const fileName = pathParts[6]; // {issueId}.md
     const fileIssueId = fileName.replace('.md', '');
 
     try {
-      const { frontmatter } = await readIssueFile(workingDir, fileReviewId, fileIssueId);
+      const { frontmatter } = await readIssueFile(projectId, fileReviewId, fileIssueId);
 
       // Apply filters
       if (reviewId && frontmatter.reviewId !== reviewId) continue;
