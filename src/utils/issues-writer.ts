@@ -7,9 +7,10 @@ import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import matter from 'gray-matter';
 import type { WriteIssueMessage } from '../types/index.js';
+import { getWorkingDirectory } from './working-directory.js';
 
-export async function writeIssue(rootDir: string, message: WriteIssueMessage): Promise<void> {
-  const skipprDir = join(rootDir, '.skippr');
+export async function writeIssue(projectId: string, message: WriteIssueMessage): Promise<void> {
+  const skipprDir = join(getWorkingDirectory(), '.skippr', 'projects', projectId);
   const reviewDir = join(skipprDir, 'reviews', message.reviewId);
   const issuesDir = join(reviewDir, 'issues');
   const issueFile = join(issuesDir, `${message.issueId}.md`);

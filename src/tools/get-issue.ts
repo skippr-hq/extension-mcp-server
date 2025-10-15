@@ -8,7 +8,7 @@ import { readIssueFile } from '../utils/issues-reader.js';
 
 // Input schema for the tool
 export const GetIssueInputSchema = z.object({
-  rootDir: z.string().describe('Project root directory containing .skippr folder'),
+  projectId: z.string().describe('Project identifier'),
   reviewId: z.string().uuid().describe('Review ID'),
   issueId: z.string().uuid().describe('Issue ID'),
 });
@@ -43,10 +43,10 @@ export type GetIssueOutput = z.infer<typeof GetIssueOutputSchema>;
 export async function getIssue(input: GetIssueInput): Promise<GetIssueOutput> {
   // Validate input
   const validated = GetIssueInputSchema.parse(input);
-  const { rootDir, reviewId, issueId } = validated;
+  const { projectId, reviewId, issueId } = validated;
 
   // Read and parse the issue file
-  const { frontmatter, markdown } = await readIssueFile(rootDir, reviewId, issueId);
+  const { frontmatter, markdown } = await readIssueFile(projectId, reviewId, issueId);
 
   return {
     id: frontmatter.id,
