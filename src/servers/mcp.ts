@@ -6,6 +6,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { listIssues, ListIssuesInput, ListIssuesInputSchema } from '../tools/list-issues.js';
 import { getIssue, GetIssueInput, GetIssueInputSchema } from '../tools/get-issue.js';
 import { listProjects } from '../tools/list-projects.js';
+import { restartWebSocketServer, getWebSocketServerStatus } from './websocket.js';
+import { z } from 'zod';
 
 export function createMcpServer(): McpServer {
   const mcpServer = new McpServer({
@@ -34,6 +36,24 @@ export function createMcpServer(): McpServer {
 
   mcpServer.tool('skippr_list_projects', {}, async () => {
     const result = await listProjects();
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  });
+
+  const restartWebSocketSchema = z.object({
+    port: z.number().optional().describe('Optional port number for the WebSocket server (defaults to WS_PORT env var or 4040)'),
+  }).shape;
+
+  mcpServer.tool('skippr_restart_websocket', restartWebSocketSchema, async (args) => {
+    const result = await restartWebSocketServer(args.port);
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  });
+
+  mcpServer.tool('skippr_websocket_status', {}, async () => {
+    const result = getWebSocketServerStatus();
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };

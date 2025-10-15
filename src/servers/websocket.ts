@@ -86,3 +86,78 @@ export function closeWebSocketServer(): void {
     wss = null;
   }
 }
+
+export async function restartWebSocketServer(port?: number): Promise<{ success: boolean; message: string; port: number }> {
+  const targetPort = port || parseInt(process.env.WS_PORT || '4040', 10);
+
+  try {
+    if (wss) {
+      console.log(`Closing existing WebSocket server...`);
+      await new Promise<void>((resolve) => {
+        if (wss) {
+          wss.close(() => {
+            console.log('Existing WebSocket server closed');
+            wss = null;
+            resolve();
+          });
+        } else {
+          resolve();
+        }
+      });
+    }
+
+    console.log(`Starting WebSocket server on port ${targetPort}...`);
+    const server = createWebSocketServer(targetPort);
+
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('WebSocket server startup timeout'));
+      }, 5000);
+
+      server.once('listening', () => {
+        clearTimeout(timeout);
+        console.log(`WebSocket server successfully started on port ${targetPort}`);
+        resolve();
+      });
+
+      server.once('error', (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      });
+    });
+
+    return {
+      success: true,
+      message: `WebSocket server restarted successfully on port ${targetPort}`,
+      port: targetPort
+    };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Failed to restart WebSocket server: ${errorMessage}`);
+
+    if ((error as any)?.code === 'EADDRINUSE') {
+      return {
+        success: false,
+        message: `Port ${targetPort} is already in use by another process`,
+        port: targetPort
+      };
+    }
+
+    return {
+      success: false,
+      message: `Failed to restart WebSocket server: ${errorMessage}`,
+      port: targetPort
+    };
+  }
+}
+
+export function getWebSocketServerStatus(): { running: boolean; port?: number } {
+  if (wss) {
+    const address = wss.address();
+    if (address && typeof address === 'object') {
+      return { running: true, port: address.port };
+    }
+    return { running: true };
+  }
+  return { running: false };
+}
