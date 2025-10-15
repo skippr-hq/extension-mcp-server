@@ -16,8 +16,6 @@ export function createWebSocketServer(port: number): WebSocketServer {
   wss = new WebSocketServer({ port });
 
   wss.on('connection', (ws: WebSocket) => {
-    // console.log('New WebSocket connection established');
-
     ws.on('message', async (data: Buffer) => {
       const messageStr = data.toString();
 
@@ -77,8 +75,6 @@ export function createWebSocketServer(port: number): WebSocketServer {
   wss.on('error', (error: Error) => {
     console.error('WebSocket server error:', error);
   });
-
-  // console.log(`WebSocket server listening on port ${port}`);
   return wss;
 }
 
