@@ -3,29 +3,37 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { listIssues, ListIssuesInputSchema } from '../tools/list-issues.js';
-import { getIssue, GetIssueInputSchema } from '../tools/get-issue.js';
+import { listIssues, ListIssuesInput, ListIssuesInputSchema } from '../tools/list-issues.js';
+import { getIssue, GetIssueInput, GetIssueInputSchema } from '../tools/get-issue.js';
+import { listProjects } from '../tools/list-projects.js';
 
-export function createMcpServer(rootDir: string): McpServer {
+export function createMcpServer(): McpServer {
   const mcpServer = new McpServer({
     name: 'skippr-mcp',
     version: '1.0.0',
   });
 
-  // Remove rootDir from the tool input schemas since it's provided by server config
-  const listIssuesSchema = ListIssuesInputSchema.omit({ rootDir: true }).shape;
-  const getIssueSchema = GetIssueInputSchema.omit({ rootDir: true }).shape;
+  // Use the full schemas - projectId will be passed by the coding agent
+  const listIssuesSchema = ListIssuesInputSchema.shape;
+  const getIssueSchema = GetIssueInputSchema.shape;
 
   // Register MCP Tools
   mcpServer.tool('skippr_list_issues', listIssuesSchema, async (args) => {
-    const result = await listIssues({ ...args, rootDir } as any);
+    const result = await listIssues(args as ListIssuesInput);
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };
   });
 
   mcpServer.tool('skippr_get_issue', getIssueSchema, async (args) => {
-    const result = await getIssue({ ...args, rootDir } as any);
+    const result = await getIssue(args as GetIssueInput);
+    return {
+      content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
+    };
+  });
+
+  mcpServer.tool('skippr_list_projects', {}, async () => {
+    const result = await listProjects();
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };

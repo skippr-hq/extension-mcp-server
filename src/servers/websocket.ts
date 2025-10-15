@@ -7,19 +7,15 @@ import { writeIssue } from '../utils/issues-writer.js';
 import { WriteIssueMessageSchema } from '../schemas/index.js';
 
 let wss: WebSocketServer | null = null;
-let serverRootDir: string | null = null;
 
-export function createWebSocketServer(port: number, rootDir: string): WebSocketServer {
+export function createWebSocketServer(port: number): WebSocketServer {
   if (wss) {
     return wss;
   }
 
-  serverRootDir = rootDir;
   wss = new WebSocketServer({ port });
 
   wss.on('connection', (ws: WebSocket) => {
-    console.log('New WebSocket connection established');
-
     ws.on('message', async (data: Buffer) => {
       const messageStr = data.toString();
 
@@ -29,7 +25,7 @@ export function createWebSocketServer(port: number, rootDir: string): WebSocketS
         if (parsedMessage.type === 'write_issue') {
           try {
             const validatedMessage = WriteIssueMessageSchema.parse(parsedMessage);
-            await writeIssue(serverRootDir!, validatedMessage);
+            await writeIssue(validatedMessage.projectId, validatedMessage);
             ws.send(
               JSON.stringify({
                 status: 'success',
@@ -79,8 +75,6 @@ export function createWebSocketServer(port: number, rootDir: string): WebSocketS
   wss.on('error', (error: Error) => {
     console.error('WebSocket server error:', error);
   });
-
-  console.log(`WebSocket server listening on port ${port}`);
   return wss;
 }
 

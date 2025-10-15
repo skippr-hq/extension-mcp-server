@@ -56,20 +56,15 @@ The easiest way to install in Claude Code:
 
 ```bash
 # Install for local development
-claude mcp add skippr \
-  -e SKIPPR_ROOT_DIR="$(pwd)" \
-  -e WS_PORT="4040" \
-  -- npx -y tsx /absolute/path/to/skippr-mcp/src/server.ts
+claude mcp add --transport stdio skippr --env WS_PORT=4040 -- node /path/to/your/skippr-project/dist/server.js
 
 # Or use the built version
 claude mcp add skippr \
-  -e SKIPPR_ROOT_DIR="/path/to/your/project" \
   -e WS_PORT="4040" \
   -- node /absolute/path/to/skippr-mcp/dist/server.js
 ```
 
 **Environment Variables:**
-- `SKIPPR_ROOT_DIR` (required): Your project root directory where `.skippr/` folder will be created
 - `WS_PORT` (optional): WebSocket server port, defaults to 4040
 
 **Verify installation:**
@@ -93,7 +88,6 @@ Add to your Claude Desktop configuration file:
       "command": "node",
       "args": ["/absolute/path/to/skippr-mcp/dist/server.js"],
       "env": {
-        "SKIPPR_ROOT_DIR": "/path/to/your/project",
         "WS_PORT": "4040"
       }
     }
@@ -107,17 +101,30 @@ Similar stdio-based configuration. Check your IDE's MCP documentation for the sp
 
 ## Available Tools
 
+### `skippr_list_projects`
+
+Lists all available project IDs from the .skippr/projects directory.
+
+**Parameters:** None
+
+**Returns:**
+```json
+{
+  "projects": ["project-1", "project-2"],
+  "totalCount": 2
+}
+```
+
 ### `skippr_list_issues`
 
 Lists all available Skippr issues with optional filtering.
 
 **Parameters:**
+- `projectId` (required): Project identifier
 - `reviewId` (optional): Filter by review UUID
 - `severity` (optional): Filter by severity level (`critical`, `high`, `medium`, `low`, `info`)
 - `agentType` (optional): Filter by agent type (`ux`, `a11y`, `pm`, `pmm`, `legal`, `content`, `users`)
 - `resolved` (optional): Filter by resolved status (boolean)
-
-> **Note**: `rootDir` is configured once via environment variable, not passed per tool call
 
 **Returns:**
 ```json
@@ -141,10 +148,9 @@ Lists all available Skippr issues with optional filtering.
 Gets full details for a specific issue including raw markdown content.
 
 **Parameters:**
+- `projectId` (required): Project identifier
 - `reviewId` (required): Review UUID
 - `issueId` (required): Issue UUID
-
-> **Note**: `rootDir` is configured once via environment variable, not passed per tool call
 
 **Returns:**
 ```json
@@ -168,12 +174,13 @@ Gets full details for a specific issue including raw markdown content.
 ```
 project-root/
 └── .skippr/
-    └── reviews/
-        └── {review-uuid}/
-            ├── metadata.json
-            └── issues/
-                ├── {issue-uuid}.md
-                └── ...
+    └── projects/
+        └── {projectId}/
+            └── reviews/
+                └── {review-uuid}/
+                    └── issues/
+                        ├── {issue-uuid}.md
+                        └── ...
 ```
 
 ## Issue Markdown Format
