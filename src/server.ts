@@ -9,8 +9,6 @@
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import dotenv from 'dotenv';
-import { homedir } from 'os';
-import { resolve } from 'path';
 import { createMcpServer } from './servers/mcp.js';
 import { createWebSocketServer, closeWebSocketServer } from './servers/websocket.js';
 

@@ -3,8 +3,8 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { listIssues, ListIssuesInputSchema } from '../tools/list-issues.js';
-import { getIssue, GetIssueInputSchema } from '../tools/get-issue.js';
+import { listIssues, ListIssuesInput, ListIssuesInputSchema } from '../tools/list-issues.js';
+import { getIssue, GetIssueInput, GetIssueInputSchema } from '../tools/get-issue.js';
 import { listProjects } from '../tools/list-projects.js';
 
 export function createMcpServer(): McpServer {
@@ -19,14 +19,14 @@ export function createMcpServer(): McpServer {
 
   // Register MCP Tools
   mcpServer.tool('skippr_list_issues', listIssuesSchema, async (args) => {
-    const result = await listIssues(args as any);
+    const result = await listIssues(args as ListIssuesInput);
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };
   });
 
   mcpServer.tool('skippr_get_issue', getIssueSchema, async (args) => {
-    const result = await getIssue(args as any);
+    const result = await getIssue(args as GetIssueInput);
     return {
       content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
     };
