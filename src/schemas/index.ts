@@ -87,3 +87,56 @@ export const WriteIssueMessageSchema = z.object({
   timestamp: z.number(),
 });
 
+// Client registration message schema
+export const ClientRegistrationSchema = z.object({
+  type: z.literal('register'),
+  projectId: z.string(),
+  metadata: z.object({
+    extensionVersion: z.string().optional(),
+    browserInfo: z.string().optional(),
+    environment: z.string().optional(),
+  }).optional(),
+});
+
+// Server to client message types
+export const ServerMessageTypeSchema = z.enum(['notification', 'command', 'data', 'status']);
+
+// Server to client message schema
+export const ServerToClientMessageSchema = z.object({
+  type: ServerMessageTypeSchema,
+  payload: z.any(),
+  timestamp: z.number().optional(),
+  messageId: z.string().optional(),
+});
+
+// Client info schema (for tracking connected clients)
+export const ClientInfoSchema = z.object({
+  clientId: z.string(),
+  projectId: z.string(),
+  connectedAt: z.number(),
+  lastActivity: z.number(),
+  metadata: z.record(z.any()).optional(),
+});
+
+// Verify issue fix request schema (MCP to WebSocket)
+export const VerifyIssueFixRequestSchema = z.object({
+  action: z.literal('verify_issue_fix'),
+  projectId: z.string(),
+  issueId: z.string().uuid(),
+  reviewId: z.string().uuid().optional(),
+  requestId: z.string(),
+});
+
+// Verify issue fix response schema (WebSocket to MCP)
+export const VerifyIssueFixResponseSchema = z.object({
+  type: z.literal('verify_issue_response'),
+  requestId: z.string(),
+  projectId: z.string(),
+  issueId: z.string().uuid(),
+  success: z.boolean(),
+  verified: z.boolean().optional(),
+  message: z.string().optional(),
+  error: z.string().optional(),
+  details: z.record(z.any()).optional(),
+});
+
