@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
-import { mkdir, rmdir } from 'fs/promises';
+import { mkdir } from 'fs/promises';
 import { listProjects } from '../../src/tools/list-projects.js';
 import { getWorkingDirectory } from '../../src/utils/working-directory.js';
 
@@ -17,9 +17,10 @@ describe('list-projects tool', () => {
 
   afterEach(async () => {
     // Clean up test directories
+    const { rm } = await import('fs/promises');
     for (const projectId of testProjects) {
       try {
-        await rmdir(join(testProjectsDir, projectId), { recursive: true });
+        await rm(join(testProjectsDir, projectId), { recursive: true, force: true });
       } catch {
         // Ignore errors if directory doesn't exist
       }
@@ -37,8 +38,9 @@ describe('list-projects tool', () => {
 
   it('should return empty array if no projects exist', async () => {
     // Remove all test projects
+    const { rm } = await import('fs/promises');
     for (const projectId of testProjects) {
-      await rmdir(join(testProjectsDir, projectId), { recursive: true });
+      await rm(join(testProjectsDir, projectId), { recursive: true, force: true });
     }
 
     const result = await listProjects();
@@ -65,9 +67,10 @@ describe('list-projects tool', () => {
 
   it('should return empty array if .skippr/projects does not exist', async () => {
     // Temporarily rename the projects directory
+    const { rm } = await import('fs/promises');
     const tempDir = join(getWorkingDirectory(), '.skippr', 'projects-backup');
     try {
-      await rmdir(testProjectsDir, { recursive: true });
+      await rm(testProjectsDir, { recursive: true, force: true });
 
       const result = await listProjects();
 

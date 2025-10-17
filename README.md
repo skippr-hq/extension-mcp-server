@@ -1,92 +1,84 @@
-# Skippr MCP Server
+# @skippr/mcp-x-ray
 
-A Model Context Protocol (MCP) server that bridges Skippr's product review insights with AI coding agents. Receive issues from the Skippr browser extension via WebSocket and access them through MCP tools in your IDE.
+MCP server for Skippr integration with AI coding agents.
 
-## Features
+[![npm version](https://img.shields.io/npm/v/@skippr/mcp-x-ray.svg)](https://www.npmjs.com/package/@skippr/mcp-x-ray)
+[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE.md)
 
-- **Dual Transport Architecture**: Stdio MCP transport + WebSocket server in one process
-- **Browser Extension Integration**: Receives issues from Skippr extension via WebSocket
-- **MCP Tools**: List and retrieve Skippr issues in Claude Code, Cursor, Windsurf
-- **Local File Storage**: Issues stored as markdown files in `.skippr` directory
-- **Filtering Support**: Filter issues by review, severity, agent type, or resolved status
-- **Type Safe**: Full TypeScript with Zod runtime validation
-- **Test Coverage**: Comprehensive test suite with Vitest
+## ⚠️ Important: AI Coding Agents Only
+
+This package is licensed exclusively for use with AI coding agents:
+
+✅ **Supported**:
+- Claude Code (Anthropic)
+- Cursor
+- Windsurf
+- Continue
+- Codeium
+- Other MCP-compatible coding assistants
+
+❌ **NOT Supported**:
+- Claude Desktop
+- ChatGPT Desktop
+- General AI chat interfaces
+- Web-based AI assistants
+
+## Prerequisites
+
+1. **Skippr Chrome Extension** (Required)
+   - Install from: [Chrome Web Store](https://chrome.google.com/webstore/detail/dmbmdnppaoabphpkafbkdcbinkfnjpmh)
+   - Must be running for issue synchronization
+   - Enable the extension and log in to your Skippr account
+
+2. **MCP-compatible coding agent**
+   - Claude Code, Cursor, Windsurf, or similar
+   - NOT compatible with general AI chat applications
 
 ## Installation
 
-### Prerequisites
-- Node.js 18 or higher
-- npm or yarn
-
-### Setup
-
-1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd skippr-mcp
+npm install -g @skippr/mcp-x-ray
 ```
 
-2. Install dependencies:
+Or use directly with `npx`:
 ```bash
-npm install
+npx @skippr/mcp-x-ray
 ```
 
-3. Build the project:
+## Configuration
+
+### Claude Code (CLI)
+
+After global installation:
 ```bash
-npm run build
+claude mcp add skippr --transport stdio -- skippr-mcp-x-ray
 ```
 
-## Development
-
-Run tests:
+Or using npx:
 ```bash
-npm test
+claude mcp add skippr --transport stdio -- npx @skippr/mcp-x-ray
 ```
 
-Type checking:
+With custom WebSocket port:
 ```bash
-npm run typecheck
+claude mcp add skippr --transport stdio -e WS_PORT="5050" -- skippr-mcp-x-ray
 ```
 
-## Adding to MCP Clients
-
-### Claude Code (Recommended)
-
-The easiest way to install in Claude Code:
-
-```bash
-# Install for local development
-claude mcp add --transport stdio skippr --env WS_PORT=4040 -- node /path/to/your/skippr-project/dist/server.js
-
-# Or use the built version
-claude mcp add skippr \
-  -e WS_PORT="4040" \
-  -- node /absolute/path/to/skippr-mcp/dist/server.js
-```
-
-**Environment Variables:**
-- `WS_PORT` (optional): WebSocket server port, defaults to 4040
-
-**Verify installation:**
+Verify installation:
 ```bash
 claude mcp list
-# Should show: skippr: npx - ✓ Connected
+# Should show: skippr: skippr-mcp-x-ray - ✓ Connected
 ```
 
-### Claude Desktop
+### Cursor
 
-Add to your Claude Desktop configuration file:
-
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-**Linux**: `~/.config/Claude/claude_desktop_config.json`
+Add to your Cursor MCP settings:
 
 ```json
 {
   "mcpServers": {
     "skippr": {
-      "command": "node",
-      "args": ["/absolute/path/to/skippr-mcp/dist/server.js"],
+      "command": "skippr-mcp-x-ray",
       "env": {
         "WS_PORT": "4040"
       }
@@ -95,9 +87,37 @@ Add to your Claude Desktop configuration file:
 }
 ```
 
-### Cursor / Windsurf
+If installed locally in a project:
+```json
+{
+  "mcpServers": {
+    "skippr": {
+      "command": "npx",
+      "args": ["@skippr/mcp-x-ray"],
+      "env": {
+        "WS_PORT": "4040"
+      }
+    }
+  }
+}
+```
 
-Similar stdio-based configuration. Check your IDE's MCP documentation for the specific config file location.
+### Windsurf
+
+Similar to Cursor configuration. Add to your Windsurf MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "skippr": {
+      "command": "skippr-mcp-x-ray",
+      "env": {
+        "WS_PORT": "4040"
+      }
+    }
+  }
+}
+```
 
 ## Available Tools
 
@@ -215,58 +235,56 @@ Optional rich user story format...
 ```
 
 
-## Architecture
+## Environment Variables
 
-Following the [BrowserMCP](https://github.com/BrowserMCP/mcp) pattern, this server runs two transports in a single Node.js process:
+- `WS_PORT` (optional): WebSocket server port for browser extension communication
+  - Default: `4040`
+  - Set to different port if 4040 is in use
 
-1. **Stdio Transport** (MCP): Communicates with AI coding agents (Claude Code, Cursor, etc.)
-2. **WebSocket Server** (Port 4040): Receives issues from Skippr browser extension
+## How It Works
+
+The MCP server uses a dual-transport architecture:
+
+1. **Stdio Transport**: Communicates with AI coding agents (Claude Code, Cursor, Windsurf)
+2. **WebSocket Server**: Receives issues from the Skippr Chrome extension
 
 **Data Flow:**
 ```
 Skippr Extension → WebSocket → writes to .skippr/
-Claude Code      → Stdio MCP → reads from .skippr/
-```
-
-Both transports share the same `.skippr/` directory via the filesystem, enabling seamless integration between issue discovery (extension) and issue resolution (AI agent).
-
-**Key Components:**
-- **Transport**: Stdio for MCP, WebSocket for extension
-- **Tools**: MCP tools for listing and retrieving issues
-- **Storage**: Local filesystem (`.skippr/reviews/{uuid}/issues/{uuid}.md`)
-- **Validation**: Zod schemas for runtime type safety
-- **Testing**: Vitest with comprehensive unit tests
-
-## Testing
-
-Run the test suite:
-```bash
-npm test
-```
-
-Run tests with coverage:
-```bash
-npm test -- --coverage
-```
-
-Test using MCP Inspector:
-```bash
-npx @modelcontextprotocol/inspector node dist/index.js
+Coding Agent     → Stdio MCP → reads from .skippr/
 ```
 
 ## Troubleshooting
 
-### Server won't start
-- Ensure Node.js 18+ is installed: `node --version`
-- Check that all dependencies are installed: `npm install`
-- Verify the build completed: `npm run build`
+### Extension Not Connecting
 
-### Client can't connect
-- Verify the absolute path in your configuration
-- Check file permissions on the dist directory
-- Look for errors in the MCP client logs
-- Restart your MCP client after configuration changes
+1. Ensure the Skippr Chrome extension is installed and enabled
+2. Check that you're logged into your Skippr account in the extension
+3. Verify the WebSocket port (default 4040) is not blocked by firewall
+4. Try a different port by setting `WS_PORT` environment variable
+
+### MCP Server Not Found
+
+1. Verify global installation: `which skippr-mcp-x-ray`
+2. If using npx, ensure @skippr/mcp-x-ray is installed
+3. Check Node.js version: `node --version` (requires 18+)
+4. Restart your coding agent after configuration changes
+
+### Issues Not Appearing
+
+1. Push issues from the Skippr extension first
+2. Check `.skippr/` directory exists in your project root
+3. Verify the MCP server is running: check your agent's MCP status
+4. Look for errors in your coding agent's logs
+
+## Support
+
+For questions or technical support:
+- Email: contact@skippr.ai
+- Website: https://skippr.ai
 
 ## License
 
-ISC
+See [LICENSE.md](LICENSE.md) for full terms.
+
+© 2025 Skippr - All Rights Reserved

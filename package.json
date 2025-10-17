@@ -1,14 +1,23 @@
 {
-  "name": "skippr-mcp",
-  "version": "1.0.0",
+  "name": "@skippr/mcp-x-ray",
+  "version": "0.1.0",
   "type": "module",
-  "main": "index.js",
+  "main": "./dist/server.js",
+  "bin": {
+    "skippr-mcp-x-ray": "./dist/server.js"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE.md"
+  ],
   "scripts": {
     "start": "node dist/server.js",
     "build": "tsc",
     "dev": "tsx watch src/server.ts",
     "inspector": "npx @modelcontextprotocol/inspector dist/server.js",
     "prepare": "npm run build",
+    "prepublishOnly": "npm run build && npm test",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
@@ -16,11 +25,17 @@
   "keywords": [
     "mcp",
     "skippr",
-    "model-context-protocol"
+    "model-context-protocol",
+    "ai-coding-agent",
+    "cursor",
+    "windsurf",
+    "claude-code",
+    "codeium"
   ],
-  "author": "",
-  "license": "ISC",
-  "description": "MCP server for Skippr integration",
+  "author": "Skippr",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "description": "MCP server for Skippr - AI coding agents only. Integrates with Claude Code, Cursor, Windsurf, and other MCP-compatible coding assistants.",
+  "homepage": "https://skippr.ai",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
     "dotenv": "^16.4.7",
