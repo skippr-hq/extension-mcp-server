@@ -224,7 +224,7 @@ describe('MCP Server', () => {
         'test-project',
         'issue-123',
         'review-123',
-        600000
+        300000
       );
       expect(result.content[0].text).toContain('verified');
       expect(result.content[0].text).toContain('true');

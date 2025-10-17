@@ -148,7 +148,7 @@ export function createMcpServer(): McpServer {
     projectId: z.string().describe('The project ID containing the issue'),
     issueId: z.string().describe('The issue ID to verify'),
     reviewId: z.string().describe('Review ID for the issue'),
-    timeout: z.number().optional().describe('Timeout in milliseconds (default: 600000)'),
+    timeout: z.number().optional().describe('Timeout in milliseconds (default: 300000)'),
   }).shape;
 
   mcpServer.tool('skippr_verify_issue_fix', verifyIssueFixSchema, async (args) => {
@@ -157,7 +157,7 @@ export function createMcpServer(): McpServer {
         args.projectId,
         args.issueId,
         args.reviewId,
-        args.timeout || 600000
+        args.timeout || 300000
       );
 
       return createTextResponse({
