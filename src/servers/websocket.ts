@@ -4,6 +4,7 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { writeIssue } from '../utils/issues-writer.js';
+import { deleteIssueFile } from '../utils/file-operations.js';
 import {
   WriteIssueMessageSchema,
   ClientRegistrationSchema,
@@ -131,6 +132,12 @@ export function createWebSocketServer(port: number): WebSocketServer {
             if (pending) {
               clearTimeout(pending.timeout);
               pendingVerifications.delete(response.requestId);
+
+              // Delete the issue file if verification succeeded
+              if (response.verified === true && response.projectId && response.issueId && response.reviewId) {
+                await deleteIssueFile(response.projectId, response.reviewId, response.issueId);
+              }
+
               pending.resolve(response);
             }
           } catch (validationError) {

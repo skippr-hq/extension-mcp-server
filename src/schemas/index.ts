@@ -133,6 +133,7 @@ export const VerifyIssueFixResponseSchema = z.object({
   requestId: z.string(),
   projectId: z.string(),
   issueId: z.string().uuid(),
+  reviewId: z.string().uuid().optional(),
   success: z.boolean(),
   verified: z.boolean().optional(),
   message: z.string().optional(),
