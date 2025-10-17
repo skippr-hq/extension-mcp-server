@@ -10,9 +10,7 @@ import {
   ClientRegistrationSchema,
   ServerToClientMessageSchema,
   ClientInfoSchema,
-  VerifyIssueFixRequestSchema,
-  VerifyIssueFixResponseSchema,
-  type ServerMessageTypeSchema
+  VerifyIssueFixResponseSchema
 } from '../schemas/index.js';
 import { z } from 'zod';
 import crypto from 'crypto';
@@ -100,21 +98,40 @@ export function createWebSocketServer(port: number): WebSocketServer {
           try {
             const registration = ClientRegistrationSchema.parse(parsedMessage);
 
-            // Generate new client ID or use existing
-            if (!clientId) {
+            // Check for re-registration attempts with different projectId
+            if (clientId) {
+              const existingClient = clients.get(clientId);
+              if (existingClient && existingClient.info.projectId !== registration.projectId) {
+                throw new Error(
+                  `Client already registered with project ${existingClient.info.projectId}. ` +
+                  `Re-registration with different project ${registration.projectId} is not allowed. ` +
+                  `Please disconnect and reconnect to register with a new project.`
+                );
+              }
+              // If same projectId, just send success response
+              ws.send(
+                JSON.stringify({
+                  type: 'registration_success',
+                  clientId,
+                  projectId: registration.projectId,
+                  message: 'Already registered with Skippr MCP server',
+                })
+              );
+            } else {
+              // New client registration
               clientId = generateClientId();
               addClient(clientId, ws, registration.projectId, registration.metadata);
-            }
 
-            // Send registration confirmation
-            ws.send(
-              JSON.stringify({
-                type: 'registration_success',
-                clientId,
-                projectId: registration.projectId,
-                message: 'Successfully registered with Skippr MCP server',
-              })
-            );
+              // Send registration confirmation
+              ws.send(
+                JSON.stringify({
+                  type: 'registration_success',
+                  clientId,
+                  projectId: registration.projectId,
+                  message: 'Successfully registered with Skippr MCP server',
+                })
+              );
+            }
           } catch (validationError) {
             ws.send(
               JSON.stringify({
@@ -225,15 +242,11 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
     if (wss) {
       console.log(`Closing existing WebSocket server...`);
       await new Promise<void>((resolve) => {
-        if (wss) {
-          wss.close(() => {
-            console.log('Existing WebSocket server closed');
-            wss = null;
-            resolve();
-          });
-        } else {
+        wss!.close(() => {
+          console.log('Existing WebSocket server closed');
+          wss = null;
           resolve();
-        }
+        });
       });
     }
 
@@ -294,15 +307,15 @@ export function getWebSocketServerStatus(): { running: boolean; port?: number } 
 }
 
 // Broadcasting functions for sending messages to clients
-export function sendToClient(clientId: string, message: any): boolean {
+export function sendToClient(clientId: string, message: z.infer<typeof ServerToClientMessageSchema>): boolean {
   const client = clients.get(clientId);
   if (client && client.ws.readyState === WebSocket.OPEN) {
     try {
-      const serverMessage: z.infer<typeof ServerToClientMessageSchema> = {
-        type: message.type || 'data',
-        payload: message.payload || message,
-        timestamp: Date.now(),
-        messageId: crypto.randomBytes(8).toString('hex')
+      // Add timestamp and messageId if not present
+      const serverMessage = {
+        ...message,
+        timestamp: message.timestamp ?? Date.now(),
+        messageId: message.messageId ?? crypto.randomBytes(8).toString('hex')
       };
       client.ws.send(JSON.stringify(serverMessage));
       return true;
@@ -314,7 +327,7 @@ export function sendToClient(clientId: string, message: any): boolean {
   return false;
 }
 
-export function sendToProject(projectId: string, message: any): { sent: number; failed: number } {
+export function sendToProject(projectId: string, message: z.infer<typeof ServerToClientMessageSchema>): { sent: number; failed: number } {
   const clientIds = projectClients.get(projectId);
   let sent = 0;
   let failed = 0;
@@ -332,7 +345,7 @@ export function sendToProject(projectId: string, message: any): { sent: number; 
   return { sent, failed };
 }
 
-export function broadcastToAll(message: any): { sent: number; failed: number } {
+export function broadcastToAll(message: z.infer<typeof ServerToClientMessageSchema>): { sent: number; failed: number } {
   let sent = 0;
   let failed = 0;
 
@@ -374,19 +387,18 @@ export async function verifyIssueFix(
 ): Promise<z.infer<typeof VerifyIssueFixResponseSchema>> {
   const requestId = crypto.randomBytes(16).toString('hex');
 
-  // Create the verification request
-  const request: z.infer<typeof VerifyIssueFixRequestSchema> = {
-    action: 'verify_issue_fix',
-    projectId,
-    issueId,
-    reviewId,
-    requestId,
-  };
-
   // Send to all clients in the project
-  const message = {
+  const message: z.infer<typeof ServerToClientMessageSchema> = {
     type: 'command',
-    payload: request,
+    payload: {
+      action: 'verify_issue_fix',
+      parameters: {
+        projectId,
+        issueId,
+        reviewId,
+        requestId,
+      },
+    },
   };
 
   const sendResult = sendToProject(projectId, message);
