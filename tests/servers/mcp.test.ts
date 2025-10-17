@@ -108,7 +108,7 @@ describe('MCP Server', () => {
     });
 
     it('should handle send to extension call', async () => {
-      vi.mocked(websocketModule.sendToClient).mockReturnValue(true);
+      vi.mocked(websocketModule.sendToExtension).mockReturnValue(true);
 
       const tool = mcpServer.tools.get('skippr_send_to_extension');
       const result = await tool.handler({
@@ -117,14 +117,14 @@ describe('MCP Server', () => {
         payload: { title: 'Test', message: 'Test message' }
       }, {});
 
-      expect(websocketModule.sendToClient).toHaveBeenCalled();
+      expect(websocketModule.sendToExtension).toHaveBeenCalled();
       expect(result.content[0].text).toContain('success');
       expect(result.content[0].text).toContain('true');
     });
 
     it('should handle notify project extensions call', async () => {
       const mockResult = { sent: 3, failed: 1 };
-      vi.mocked(websocketModule.sendToProject).mockReturnValue(mockResult);
+      vi.mocked(websocketModule.sendMessageToProjectExtensions).mockReturnValue(mockResult);
 
       const tool = mcpServer.tools.get('skippr_notify_project_extensions');
       const result = await tool.handler({
@@ -133,14 +133,14 @@ describe('MCP Server', () => {
         payload: { status: 'active' }
       }, {});
 
-      expect(websocketModule.sendToProject).toHaveBeenCalled();
+      expect(websocketModule.sendMessageToProjectExtensions).toHaveBeenCalled();
       expect(result.content[0].text).toContain('sent');
       expect(result.content[0].text).toContain('3');
     });
 
     it('should handle notify all extensions call', async () => {
       const mockResult = { sent: 5, failed: 0 };
-      vi.mocked(websocketModule.broadcastToAll).mockReturnValue(mockResult);
+      vi.mocked(websocketModule.broadcastToAllExtensions).mockReturnValue(mockResult);
 
       const tool = mcpServer.tools.get('skippr_notify_all_extensions');
       const result = await tool.handler({
@@ -148,7 +148,7 @@ describe('MCP Server', () => {
         payload: { data: 'test' }
       }, {});
 
-      expect(websocketModule.broadcastToAll).toHaveBeenCalled();
+      expect(websocketModule.broadcastToAllExtensions).toHaveBeenCalled();
       expect(result.content[0].text).toContain('5');
     });
   });
@@ -171,23 +171,23 @@ describe('MCP Server', () => {
         { clientId: '1', projectId: 'proj-1', connectedAt: Date.now(), lastActivity: Date.now() },
         { clientId: '2', projectId: 'proj-2', connectedAt: Date.now(), lastActivity: Date.now() }
       ];
-      vi.mocked(websocketModule.getConnectedClients).mockReturnValue(mockClients);
+      vi.mocked(websocketModule.getConnectedExtensions).mockReturnValue(mockClients);
 
       const tool = mcpServer.tools.get('skippr_list_connected_extensions');
       const result = await tool.handler({}, {});
 
-      expect(websocketModule.getConnectedClients).toHaveBeenCalled();
+      expect(websocketModule.getConnectedExtensions).toHaveBeenCalled();
       expect(result.content[0].text).toContain('totalExtensions');
       expect(result.content[0].text).toContain('2');
     });
 
     it('should handle disconnect extension call', async () => {
-      vi.mocked(websocketModule.disconnectClient).mockReturnValue(true);
+      vi.mocked(websocketModule.disconnectExtension).mockReturnValue(true);
 
       const tool = mcpServer.tools.get('skippr_disconnect_extension');
       const result = await tool.handler({ extensionId: 'ext-123' }, {});
 
-      expect(websocketModule.disconnectClient).toHaveBeenCalledWith('ext-123');
+      expect(websocketModule.disconnectExtension).toHaveBeenCalledWith('ext-123');
       expect(result.content[0].text).toContain('success');
       expect(result.content[0].text).toContain('true');
     });

@@ -5,11 +5,11 @@ import {
   closeWebSocketServer,
   restartWebSocketServer,
   getWebSocketServerStatus,
-  sendToClient,
-  sendToProject,
-  broadcastToAll,
-  getConnectedClients,
-  disconnectClient
+  sendToExtension,
+  sendMessageToProjectExtensions,
+  broadcastToAllExtensions,
+  getConnectedExtensions,
+  disconnectExtension
 } from '../../src/servers/websocket.js';
 import { ClientRegistrationSchema, ServerToClientMessageSchema } from '../../src/schemas/index.js';
 import { z } from 'zod';
@@ -204,7 +204,7 @@ describe('WebSocket Server', () => {
         }
       };
 
-      const result = sendToClient(clientId, testMessage);
+      const result = sendToExtension(clientId, testMessage);
       expect(result).toBe(true);
 
       await new Promise((resolve) => {
@@ -228,7 +228,7 @@ describe('WebSocket Server', () => {
         }
       };
 
-      const result = sendToProject('broadcast-test', testMessage);
+      const result = sendMessageToProjectExtensions('broadcast-test', testMessage);
       expect(result.sent).toBe(1);
       expect(result.failed).toBe(0);
     });
@@ -242,7 +242,7 @@ describe('WebSocket Server', () => {
         }
       };
 
-      const result = broadcastToAll(testMessage);
+      const result = broadcastToAllExtensions(testMessage);
       expect(result.sent).toBe(1);
       expect(result.failed).toBe(0);
     });
@@ -274,14 +274,14 @@ describe('WebSocket Server', () => {
     });
 
     it('should list connected clients', () => {
-      const clients = getConnectedClients();
+      const clients = getConnectedExtensions();
       expect(clients.length).toBe(1);
       expect(clients[0].clientId).toBe(clientId);
       expect(clients[0].projectId).toBe('management-test');
     });
 
     it('should disconnect client', () => {
-      const result = disconnectClient(clientId);
+      const result = disconnectExtension(clientId);
       expect(result).toBe(true);
 
       const clients = getConnectedClients();
@@ -289,7 +289,7 @@ describe('WebSocket Server', () => {
     });
 
     it('should return false for non-existent client', () => {
-      const result = disconnectClient('non-existent-id');
+      const result = disconnectExtension('non-existent-id');
       expect(result).toBe(false);
     });
   });

@@ -306,9 +306,9 @@ export function getWebSocketServerStatus(): { running: boolean; port?: number } 
   return { running: false };
 }
 
-// Broadcasting functions for sending messages to clients
-export function sendToClient(clientId: string, message: z.infer<typeof ServerToClientMessageSchema>): boolean {
-  const client = clients.get(clientId);
+// Broadcasting functions for sending messages to extensions
+export function sendToExtension(extensionId: string, message: z.infer<typeof ServerToClientMessageSchema>): boolean {
+  const client = clients.get(extensionId);
   if (client && client.ws.readyState === WebSocket.OPEN) {
     try {
       // Add timestamp and messageId if not present
@@ -320,21 +320,21 @@ export function sendToClient(clientId: string, message: z.infer<typeof ServerToC
       client.ws.send(JSON.stringify(serverMessage));
       return true;
     } catch (error) {
-      console.error(`Error sending message to client ${clientId}:`, error);
+      console.error(`Error sending message to extension ${extensionId}:`, error);
       return false;
     }
   }
   return false;
 }
 
-export function sendToProject(projectId: string, message: z.infer<typeof ServerToClientMessageSchema>): { sent: number; failed: number } {
+export function sendMessageToProjectExtensions(projectId: string, message: z.infer<typeof ServerToClientMessageSchema>): { sent: number; failed: number } {
   const clientIds = projectClients.get(projectId);
   let sent = 0;
   let failed = 0;
 
   if (clientIds) {
     for (const clientId of clientIds) {
-      if (sendToClient(clientId, message)) {
+      if (sendToExtension(clientId, message)) {
         sent++;
       } else {
         failed++;
@@ -345,12 +345,12 @@ export function sendToProject(projectId: string, message: z.infer<typeof ServerT
   return { sent, failed };
 }
 
-export function broadcastToAll(message: z.infer<typeof ServerToClientMessageSchema>): { sent: number; failed: number } {
+export function broadcastToAllExtensions(message: z.infer<typeof ServerToClientMessageSchema>): { sent: number; failed: number } {
   let sent = 0;
   let failed = 0;
 
   for (const [clientId] of clients) {
-    if (sendToClient(clientId, message)) {
+    if (sendToExtension(clientId, message)) {
       sent++;
     } else {
       failed++;
@@ -360,7 +360,7 @@ export function broadcastToAll(message: z.infer<typeof ServerToClientMessageSche
   return { sent, failed };
 }
 
-export function getConnectedClients(): Array<z.infer<typeof ClientInfoSchema>> {
+export function getConnectedExtensions(): Array<z.infer<typeof ClientInfoSchema>> {
   const clientList: Array<z.infer<typeof ClientInfoSchema>> = [];
   for (const [, client] of clients) {
     clientList.push(client.info);
@@ -368,11 +368,11 @@ export function getConnectedClients(): Array<z.infer<typeof ClientInfoSchema>> {
   return clientList;
 }
 
-export function disconnectClient(clientId: string): boolean {
-  const client = clients.get(clientId);
+export function disconnectExtension(extensionId: string): boolean {
+  const client = clients.get(extensionId);
   if (client) {
     client.ws.close();
-    removeClient(clientId);
+    removeClient(extensionId);
     return true;
   }
   return false;
@@ -401,7 +401,7 @@ export async function verifyIssueFix(
     },
   };
 
-  const sendResult = sendToProject(projectId, message);
+  const sendResult = sendMessageToProjectExtensions(projectId, message);
 
   if (sendResult.sent === 0) {
     throw new Error(`No clients connected for project ${projectId}`);

@@ -9,11 +9,11 @@ import { listProjects } from '../tools/list-projects.js';
 import {
   restartWebSocketServer,
   getWebSocketServerStatus,
-  sendToClient,
-  sendToProject,
-  broadcastToAll,
-  getConnectedClients,
-  disconnectClient,
+  sendToExtension,
+  sendMessageToProjectExtensions,
+  broadcastToAllExtensions,
+  getConnectedExtensions,
+  disconnectExtension,
   verifyIssueFix
 } from './websocket.js';
 import { z } from 'zod';
@@ -78,7 +78,7 @@ export function createMcpServer(): McpServer {
       type: args.type,
       payload: args.payload
     };
-    const success = sendToClient(args.extensionId, message);
+    const success = sendToExtension(args.extensionId, message);
     return createTextResponse({
       success,
       extensionId: args.extensionId,
@@ -97,7 +97,7 @@ export function createMcpServer(): McpServer {
       type: args.type,
       payload: args.payload
     };
-    const result = sendToProject(args.projectId, message);
+    const result = sendMessageToProjectExtensions(args.projectId, message);
     return createTextResponse({
       projectId: args.projectId,
       ...result,
@@ -115,7 +115,7 @@ export function createMcpServer(): McpServer {
       type: args.type,
       payload: args.payload
     };
-    const result = broadcastToAll(message);
+    const result = broadcastToAllExtensions(message);
     return createTextResponse({
       ...result,
       message: `Notification sent to ${result.sent} extensions, ${result.failed} failed`
@@ -123,7 +123,7 @@ export function createMcpServer(): McpServer {
   });
 
   mcpServer.tool('skippr_list_connected_extensions', {}, async () => {
-    const extensions = getConnectedClients();
+    const extensions = getConnectedExtensions();
     return createTextResponse({
       totalExtensions: extensions.length,
       extensions
@@ -135,7 +135,7 @@ export function createMcpServer(): McpServer {
   }).shape;
 
   mcpServer.tool('skippr_disconnect_extension', disconnectExtensionSchema, async (args) => {
-    const success = disconnectClient(args.extensionId);
+    const success = disconnectExtension(args.extensionId);
     return createTextResponse({
       success,
       extensionId: args.extensionId,
