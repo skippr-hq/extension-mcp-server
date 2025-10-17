@@ -34,7 +34,7 @@
   ],
   "author": "Skippr",
   "license": "SEE LICENSE IN LICENSE.md",
-  "description": "MCP server for Skippr - AI coding agents only. Integrates with Claude Code, Cursor, Windsurf, and other MCP-compatible coding assistants.",
+  "description": "MCP server that bridges Skippr product review insights with AI coding agents. Enables developers to automatically fix UX, accessibility, and product issues identified by Skippr's browser extension using natural language commands in Claude Code, Cursor, Windsurf, and other MCP-compatible coding assistants.",
   "homepage": "https://skippr.ai",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
