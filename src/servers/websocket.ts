@@ -4,7 +4,7 @@
 
 import { WebSocketServer, WebSocket } from 'ws';
 import { writeIssue } from '../utils/issues-writer.js';
-import { deleteIssueFile } from '../utils/file-operations.js';
+import { deleteIssueFile } from '../utils/issues-deleter.js';
 import {
   WriteIssueMessageSchema,
   ClientRegistrationSchema,
