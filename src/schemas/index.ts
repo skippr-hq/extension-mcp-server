@@ -87,3 +87,102 @@ export const WriteIssueMessageSchema = z.object({
   timestamp: z.number(),
 });
 
+// Metadata schema shared across client-related schemas
+export const ClientMetadataSchema = z.object({
+  extensionVersion: z.string().optional(),
+  browserInfo: z.string().optional(),
+  environment: z.string().optional(),
+});
+
+// Client registration message schema
+export const ClientRegistrationSchema = z.object({
+  type: z.literal('register'),
+  projectId: z.string(),
+  metadata: ClientMetadataSchema.optional(),
+});
+
+// Server to client message types
+export const ServerMessageTypeSchema = z.enum(['notification', 'command', 'data', 'status']);
+
+// Payload schemas for different message types
+export const NotificationPayloadSchema = z.object({
+  title: z.string(),
+  message: z.string(),
+  level: z.enum(['info', 'warning', 'error']).optional(),
+});
+
+export const CommandPayloadSchema = z.object({
+  action: z.string(),
+  parameters: z.record(z.any()).optional(),
+});
+
+export const DataPayloadSchema = z.object({
+  data: z.any(),
+  dataType: z.string().optional(),
+});
+
+export const StatusPayloadSchema = z.object({
+  status: z.string(),
+  details: z.record(z.any()).optional(),
+});
+
+// Server to client message schema with discriminated union
+export const ServerToClientMessageSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('notification'),
+    payload: NotificationPayloadSchema,
+    timestamp: z.number().optional(),
+    messageId: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('command'),
+    payload: CommandPayloadSchema,
+    timestamp: z.number().optional(),
+    messageId: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('data'),
+    payload: DataPayloadSchema,
+    timestamp: z.number().optional(),
+    messageId: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('status'),
+    payload: StatusPayloadSchema,
+    timestamp: z.number().optional(),
+    messageId: z.string().optional(),
+  }),
+]);
+
+// Client info schema (for tracking connected clients)
+export const ClientInfoSchema = z.object({
+  clientId: z.string(),
+  projectId: z.string(),
+  connectedAt: z.number(),
+  lastActivity: z.number(),
+  metadata: ClientMetadataSchema.optional(),
+});
+
+// Verify issue fix request schema (MCP to WebSocket)
+export const VerifyIssueFixRequestSchema = z.object({
+  action: z.literal('verify_issue_fix'),
+  projectId: z.string(),
+  issueId: z.string().uuid(),
+  reviewId: z.string().uuid().optional(),
+  requestId: z.string(),
+});
+
+// Verify issue fix response schema (WebSocket to MCP)
+export const VerifyIssueFixResponseSchema = z.object({
+  type: z.literal('verify_issue_response'),
+  requestId: z.string(),
+  projectId: z.string(),
+  issueId: z.string().uuid(),
+  reviewId: z.string().uuid().optional(),
+  success: z.boolean(),
+  verified: z.boolean().optional(),
+  message: z.string().optional(),
+  error: z.string().optional(),
+  details: z.record(z.any()).optional(),
+});
+
