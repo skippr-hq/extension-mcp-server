@@ -3,7 +3,7 @@
  */
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { listIssues, ListIssuesInput, ListIssuesInputSchema } from '../tools/list-issues.js';
+import { listIssues, ListIssuesInput, ListIssuesInputSchema, ListIssuesOutputSchema } from '../tools/list-issues.js';
 import { getIssue, GetIssueInput, GetIssueInputSchema } from '../tools/get-issue.js';
 import { listProjects } from '../tools/list-projects.js';
 import {
@@ -17,7 +17,7 @@ import {
   verifyIssueFix
 } from './websocket.js';
 import { z } from 'zod';
-import { ServerToClientMessageSchema } from '../schemas/index.js';
+import { ServerToClientMessageSchema, ClientInfoSchema } from '../schemas/index.js';
 
 // Helper function to create MCP text responses
 function createTextResponse(data: any) {
@@ -39,10 +39,7 @@ export function createMcpServer(): McpServer {
       title: 'List Skippr Issues',
       description: 'Lists all available Skippr issues with optional filtering by project, review, severity, agent type, and resolution status',
       inputSchema: ListIssuesInputSchema.shape,
-      outputSchema: z.object({
-        issues: z.array(z.any()),
-        totalCount: z.number()
-      }).shape
+      outputSchema: ListIssuesOutputSchema.shape
     },
     async (args) => {
       const result = await listIssues(args as ListIssuesInput);
@@ -224,7 +221,7 @@ export function createMcpServer(): McpServer {
       inputSchema: {},
       outputSchema: z.object({
         totalExtensions: z.number(),
-        extensions: z.array(z.any())
+        extensions: z.array(ClientInfoSchema)
       }).shape
     },
     async () => {

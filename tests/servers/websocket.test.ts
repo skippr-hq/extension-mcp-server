@@ -51,6 +51,8 @@ import * as websocketModule from '../../src/servers/websocket.js';
 describe('WebSocket Server', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Ensure server is closed before each test
+    websocketModule.closeWebSocketServer();
   });
 
   afterEach(() => {

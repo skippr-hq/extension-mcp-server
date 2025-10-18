@@ -54,8 +54,8 @@ any term(s) of this license.
 ## Contact
 
 For licensing inquiries, support, or questions:
-- Email: support@skippr.com
-- Website: https://skippr.com
+- Email: contact@skippr.ai
+- Website: https://skippr.ai
 
 ---
 

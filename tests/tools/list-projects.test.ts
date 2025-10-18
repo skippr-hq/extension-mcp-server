@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
-import { mkdir } from 'fs/promises';
+import { mkdir, rm, writeFile, unlink } from 'fs/promises';
 import { listProjects } from '../../src/tools/list-projects.js';
 import { getWorkingDirectory } from '../../src/utils/working-directory.js';
 
@@ -17,7 +17,6 @@ describe('list-projects tool', () => {
 
   afterEach(async () => {
     // Clean up test directories
-    const { rm } = await import('fs/promises');
     for (const projectId of testProjects) {
       try {
         await rm(join(testProjectsDir, projectId), { recursive: true, force: true });
@@ -38,7 +37,6 @@ describe('list-projects tool', () => {
 
   it('should return empty array if no projects exist', async () => {
     // Remove all test projects
-    const { rm } = await import('fs/promises');
     for (const projectId of testProjects) {
       await rm(join(testProjectsDir, projectId), { recursive: true, force: true });
     }
@@ -53,8 +51,7 @@ describe('list-projects tool', () => {
 
   it('should only return directories, not files', async () => {
     // Create a file in the projects directory (should be ignored)
-    const fs = await import('fs/promises');
-    await fs.writeFile(join(testProjectsDir, 'not-a-project.txt'), 'test content');
+    await writeFile(join(testProjectsDir, 'not-a-project.txt'), 'test content');
 
     const result = await listProjects();
 
@@ -62,13 +59,10 @@ describe('list-projects tool', () => {
     expect(result.projects).toContain('project-1');
 
     // Clean up the test file
-    await fs.unlink(join(testProjectsDir, 'not-a-project.txt'));
+    await unlink(join(testProjectsDir, 'not-a-project.txt'));
   });
 
   it('should return empty array if .skippr/projects does not exist', async () => {
-    // Temporarily rename the projects directory
-    const { rm } = await import('fs/promises');
-    const tempDir = join(getWorkingDirectory(), '.skippr', 'projects-backup');
     try {
       await rm(testProjectsDir, { recursive: true, force: true });
 
