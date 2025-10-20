@@ -15,9 +15,10 @@
     "publishArgs": ["--provenance", "--access", "public"]
   },
   "hooks": {
+    "before:init": "npm test",
     "after:bump": [
       "npm run build",
-      "echo '#!/usr/bin/env node' | cat - dist/server.js > temp && mv temp dist/server.js",
+      "TMPFILE=$(mktemp) && echo '#!/usr/bin/env node' | cat - dist/server.js > \"$TMPFILE\" && mv \"$TMPFILE\" dist/server.js",
       "chmod +x dist/server.js"
     ]
   },
