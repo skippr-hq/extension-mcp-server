@@ -1,8 +1,16 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { join } from 'path';
-import { listIssues } from '../../src/tools/list-issues.js';
 
 const FIXTURES_DIR = join(__dirname, '..', 'fixtures');
+
+// Mock getWorkingDirectory to return fixtures path
+vi.mock('../../src/utils/working-directory.js', () => ({
+  getWorkingDirectory: () => FIXTURES_DIR
+}));
+
+// Import after mocking
+const { listIssues } = await import('../../src/tools/list-issues.js');
+
 const PROJECT_ID = 'test-project';
 
 describe('list-issues tool', () => {
