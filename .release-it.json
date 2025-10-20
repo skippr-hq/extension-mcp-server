@@ -1,0 +1,30 @@
+{
+  "$schema": "https://unpkg.com/release-it@17/schema/release-it.json",
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": false,
+    "requireCommits": true
+  },
+  "github": {
+    "release": true,
+    "releaseName": "v${version}"
+  },
+  "npm": {
+    "publish": true,
+    "publishArgs": ["--provenance", "--access", "public"]
+  },
+  "hooks": {
+    "after:bump": [
+      "npm run build",
+      "echo '#!/usr/bin/env node' | cat - dist/server.js > temp && mv temp dist/server.js",
+      "chmod +x dist/server.js"
+    ]
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "angular",
+      "infile": "CHANGELOG.md"
+    }
+  }
+}
