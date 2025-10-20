@@ -43,4 +43,4 @@ For questions, technical support, or feedback:
 * **Website**: [https://skippr.ai](https://skippr.ai)
 
 
-© 2025 Skippr - All Rights Reserved
+© 2025 Skippr - Released under MIT License
