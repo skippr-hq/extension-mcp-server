@@ -8,16 +8,22 @@ vi.mock('fs/promises', async () => {
   return vol.promises;
 });
 
+// Mock getWorkingDirectory to return test path
+vi.mock('../../src/utils/working-directory.js', () => ({
+  getWorkingDirectory: () => '/test'
+}));
+
 // Import after mocking
 const { writeIssue } = await import('../../src/utils/issues-writer.js');
 const { readIssueFile } = await import('../../src/utils/issues-reader.js');
 
 describe('issues-writer', () => {
-  const testRootDir = '/test/project';
+  const testProjectId = 'test-project';
+  const testWorkingDir = '/test';
 
   beforeEach(() => {
     vol.reset();
-    vol.mkdirSync(testRootDir, { recursive: true });
+    vol.mkdirSync(testWorkingDir, { recursive: true });
   });
 
   afterEach(() => {
@@ -44,14 +50,14 @@ describe('issues-writer', () => {
         timestamp: Date.now(),
       };
 
-      await writeIssue(testRootDir, message);
+      await writeIssue(testProjectId, message);
 
       // Verify file was created
-      const issueFile = `${testRootDir}/.skippr/reviews/${message.reviewId}/issues/${message.issueId}.md`;
+      const issueFile = `${testWorkingDir}/.skippr/projects/${testProjectId}/reviews/${message.reviewId}/issues/${message.issueId}.md`;
       expect(vol.existsSync(issueFile)).toBe(true);
 
       // Read and verify content using issues-reader
-      const result = await readIssueFile(testRootDir, message.reviewId, message.issueId);
+      const result = await readIssueFile(testProjectId, message.reviewId, message.issueId);
 
       expect(result.frontmatter.id).toBe(message.issueId);
       expect(result.frontmatter.reviewId).toBe(message.reviewId);
@@ -85,9 +91,9 @@ describe('issues-writer', () => {
         timestamp: Date.now(),
       };
 
-      await writeIssue(testRootDir, message);
+      await writeIssue(testProjectId, message);
 
-      const result = await readIssueFile(testRootDir, message.reviewId, message.issueId);
+      const result = await readIssueFile(testProjectId, message.reviewId, message.issueId);
 
       expect(result.frontmatter.id).toBe(message.issueId);
       expect(result.frontmatter.resolved).toBe(false); // default value
@@ -110,10 +116,10 @@ describe('issues-writer', () => {
         timestamp: Date.now(),
       };
 
-      await writeIssue(testRootDir, message);
+      await writeIssue(testProjectId, message);
 
       // Verify directory structure was created
-      expect(vol.existsSync(`${testRootDir}/.skippr/reviews/${message.reviewId}/issues`)).toBe(true);
+      expect(vol.existsSync(`${testWorkingDir}/.skippr/projects/${testProjectId}/reviews/${message.reviewId}/issues`)).toBe(true);
     });
 
     it('should add timestamps to frontmatter', async () => {
@@ -131,10 +137,10 @@ describe('issues-writer', () => {
         timestamp: Date.now(),
       };
 
-      await writeIssue(testRootDir, message);
+      await writeIssue(testProjectId, message);
 
       const afterWrite = new Date().toISOString();
-      const result = await readIssueFile(testRootDir, message.reviewId, message.issueId);
+      const result = await readIssueFile(testProjectId, message.reviewId, message.issueId);
 
       expect(result.frontmatter.createdAt).toBeDefined();
       expect(result.frontmatter.updatedAt).toBeDefined();
@@ -158,9 +164,9 @@ describe('issues-writer', () => {
         timestamp: Date.now(),
       };
 
-      await writeIssue(testRootDir, message);
+      await writeIssue(testProjectId, message);
 
-      const result = await readIssueFile(testRootDir, message.reviewId, message.issueId);
+      const result = await readIssueFile(testProjectId, message.reviewId, message.issueId);
 
       expect(result.markdown).toContain('**bold**');
       expect(result.markdown).toContain('*italic*');
@@ -181,9 +187,9 @@ describe('issues-writer', () => {
         timestamp: Date.now(),
       };
 
-      await writeIssue(testRootDir, message);
+      await writeIssue(testProjectId, message);
 
-      const result = await readIssueFile(testRootDir, message.reviewId, message.issueId);
+      const result = await readIssueFile(testProjectId, message.reviewId, message.issueId);
 
       expect(result.frontmatter.agentTypes).toEqual(['ux', 'a11y', 'content']);
     });
@@ -203,13 +209,13 @@ describe('issues-writer', () => {
       };
 
       // Create directory first
-      await writeIssue(testRootDir, message);
+      await writeIssue(testProjectId, message);
 
       // Mock writeFile to throw error
       const originalWriteFile = vol.promises.writeFile;
       vol.promises.writeFile = vi.fn().mockRejectedValue(new Error('Write failed'));
 
-      await expect(writeIssue(testRootDir, message)).rejects.toThrow('Write failed');
+      await expect(writeIssue(testProjectId, message)).rejects.toThrow('Write failed');
 
       // Restore
       vol.promises.writeFile = originalWriteFile;

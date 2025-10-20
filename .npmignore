@@ -1,0 +1,57 @@
+# Source code - NEVER publish TypeScript source
+src/
+*.ts
+!*.d.ts
+
+# Tests
+tests/
+test-*.js
+*.test.*
+*.spec.*
+coverage/
+vitest.config.ts
+
+# Development files
+.github/
+.vscode/
+.idea/
+*.log
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+
+# Configuration files
+tsconfig.json
+.env
+.env.*
+.gitignore
+CLAUDE.md
+CONTRIBUTING.md
+
+# Build artifacts that shouldn't be published
+*.tsbuildinfo
+*.map
+
+# Documentation source files (keep only README.md)
+docs/
+
+# Development dependencies configuration
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# Git files
+.git/
+.gitattributes
+
+# Package manager files (except package.json which is needed)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Keep only the essentials:
+# - dist/ (compiled JavaScript)
+# - package.json
+# - README.md
+# - LICENSE.md
