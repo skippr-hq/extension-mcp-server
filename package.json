@@ -9,7 +9,7 @@
   "files": [
     "dist/**/*",
     "README.md",
-    "LICENSE.md"
+    "LICENSE"
   ],
   "scripts": {
     "start": "node dist/server.js",
@@ -33,9 +33,16 @@
     "codeium"
   ],
   "author": "Skippr",
-  "license": "SEE LICENSE IN LICENSE.md",
+  "license": "MIT",
   "description": "MCP server that bridges Skippr product review insights with AI coding agents. Enables developers to automatically fix UX, accessibility, and product issues identified by Skippr's browser extension using natural language commands in Claude Code, Cursor, Windsurf, and other MCP-compatible coding assistants.",
   "homepage": "https://skippr.ai",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skippr-hq/vision-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/skippr-hq/vision-mcp/issues"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
     "dotenv": "^16.4.7",
