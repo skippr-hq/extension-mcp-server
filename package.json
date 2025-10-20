@@ -1,6 +1,6 @@
 {
   "name": "@skippr/mcp-x-ray",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "main": "./dist/server.js",
   "bin": {
@@ -36,13 +36,8 @@
   "license": "MIT",
   "description": "MCP server that bridges Skippr product review insights with AI coding agents. Enables developers to automatically fix UX, accessibility, and product issues identified by Skippr's browser extension using natural language commands in Claude Code, Cursor, Windsurf, and other MCP-compatible coding assistants.",
   "homepage": "https://skippr.ai",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/skippr-hq/vision-mcp.git"
-  },
-  "bugs": {
-    "url": "https://github.com/skippr-hq/vision-mcp/issues"
-  },
+  "repository": "github:skippr-hq/mcp-x-ray",
+  "bugs": "https://github.com/skippr-hq/mcp-x-ray/issues",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
     "dotenv": "^16.4.7",

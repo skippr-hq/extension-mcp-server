@@ -32,7 +32,7 @@ Before setting up the Skippr MCP server, ensure you have:
 Add the Skippr MCP server to your Claude Code configuration:
 
 ```bash
-claude mcp add skippr --transport stdio -- skippr-mcp-x-ray
+claude mcp add skippr-x-ray --transport stdio -- skippr-mcp-x-ray
 ```
 
 ## Support
