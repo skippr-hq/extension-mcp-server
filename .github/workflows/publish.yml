@@ -13,6 +13,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for NPM Trusted Publishers (OIDC)
 
     steps:
     - name: Checkout repository
@@ -56,10 +59,8 @@ jobs:
 
     - name: Publish to NPM
       run: |
-        npm publish --access public
+        npm publish --provenance --access public
         echo "✓ Published @skippr/mcp-x-ray to NPM"
-      env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Verify publication
       run: |

@@ -19,10 +19,12 @@ import {
 import { z } from 'zod';
 import { ServerToClientMessageSchema, ClientInfoSchema } from '../schemas/index.js';
 
-// Helper function to create MCP text responses
-function createTextResponse(data: any) {
+// Helper function to create MCP responses with structured content
+// When outputSchema is provided, the SDK validates the structuredContent field
+function createStructuredResponse(data: any) {
   return {
     content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }],
+    structuredContent: data  // This gets validated against the outputSchema
   };
 }
 
@@ -43,7 +45,7 @@ export function createMcpServer(): McpServer {
     },
     async (args) => {
       const result = await listIssues(args as ListIssuesInput);
-      return createTextResponse(result);
+      return createStructuredResponse(result);
     }
   );
 
@@ -65,7 +67,7 @@ export function createMcpServer(): McpServer {
     },
     async (args) => {
       const result = await getIssue(args as GetIssueInput);
-      return createTextResponse(result);
+      return createStructuredResponse(result);
     }
   );
 
@@ -82,7 +84,7 @@ export function createMcpServer(): McpServer {
     },
     async () => {
       const result = await listProjects();
-      return createTextResponse(result);
+      return createStructuredResponse(result);
     }
   );
 
@@ -102,7 +104,7 @@ export function createMcpServer(): McpServer {
     },
     async (args) => {
       const result = await restartWebSocketServer(args.port);
-      return createTextResponse(result);
+      return createStructuredResponse(result);
     }
   );
 
@@ -119,7 +121,7 @@ export function createMcpServer(): McpServer {
     },
     async () => {
       const result = getWebSocketServerStatus();
-      return createTextResponse(result);
+      return createStructuredResponse(result);
     }
   );
 
@@ -146,11 +148,12 @@ export function createMcpServer(): McpServer {
         payload: args.payload
       };
       const success = sendToExtension(args.extensionId, message);
-      return createTextResponse({
+      const result = {
         success,
         extensionId: args.extensionId,
         message: success ? 'Message sent successfully' : 'Failed to send message (extension may be disconnected)'
-      });
+      };
+      return createStructuredResponse(result);
     }
   );
 
@@ -176,12 +179,13 @@ export function createMcpServer(): McpServer {
         type: args.type,
         payload: args.payload
       };
-      const result = sendMessageToProjectExtensions(args.projectId, message);
-      return createTextResponse({
+      const msgResult = sendMessageToProjectExtensions(args.projectId, message);
+      const result = {
         projectId: args.projectId,
-        ...result,
-        message: `Notification sent to ${result.sent} extensions, ${result.failed} failed`
-      });
+        ...msgResult,
+        message: `Notification sent to ${msgResult.sent} extensions, ${msgResult.failed} failed`
+      };
+      return createStructuredResponse(result);
     }
   );
 
@@ -205,11 +209,12 @@ export function createMcpServer(): McpServer {
         type: args.type,
         payload: args.payload
       };
-      const result = broadcastToAllExtensions(message);
-      return createTextResponse({
-        ...result,
-        message: `Notification sent to ${result.sent} extensions, ${result.failed} failed`
-      });
+      const broadcastResult = broadcastToAllExtensions(message);
+      const result = {
+        ...broadcastResult,
+        message: `Notification sent to ${broadcastResult.sent} extensions, ${broadcastResult.failed} failed`
+      };
+      return createStructuredResponse(result);
     }
   );
 
@@ -226,10 +231,11 @@ export function createMcpServer(): McpServer {
     },
     async () => {
       const extensions = getConnectedExtensions();
-      return createTextResponse({
+      const result = {
         totalExtensions: extensions.length,
         extensions
-      });
+      };
+      return createStructuredResponse(result);
     }
   );
 
@@ -249,11 +255,12 @@ export function createMcpServer(): McpServer {
     },
     async (args) => {
       const success = disconnectExtension(args.extensionId);
-      return createTextResponse({
+      const result = {
         success,
         extensionId: args.extensionId,
         message: success ? 'Extension disconnected successfully' : 'Extension not found'
-      });
+      };
+      return createStructuredResponse(result);
     }
   );
 
@@ -288,7 +295,7 @@ export function createMcpServer(): McpServer {
           args.timeout || 300000
         );
 
-        return createTextResponse({
+        const result = {
           success: true,
           projectId: args.projectId,
           issueId: args.issueId,
@@ -296,16 +303,18 @@ export function createMcpServer(): McpServer {
           error: response.error,
           message: response.message,
           details: response.details
-        });
+        };
+        return createStructuredResponse(result);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-        return createTextResponse({
+        const result = {
           success: false,
           projectId: args.projectId,
           issueId: args.issueId,
           error: errorMessage,
           message: `Failed to verify issue fix: ${errorMessage}`
-        });
+        };
+        return createStructuredResponse(result);
       }
     }
   );
