@@ -3,9 +3,7 @@
   "version": "0.4.4",
   "type": "module",
   "main": "./dist/index.js",
-  "bin": {
-    "mcp-x-ray": "dist/index.js"
-  },
+  "bin": "dist/index.js",
   "engines": {
     "node": ">=22.0.0"
   },
