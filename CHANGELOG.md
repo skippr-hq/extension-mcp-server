@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.7](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.6...v0.4.7) (2025-10-21)
+
+
+### Bug Fixes
+
+* use object format for bin configuration to resolve npx execution ([d6dc45d](https://github.com/skippr-hq/mcp-x-ray/commit/d6dc45d4736f92592b29a8c9d79e200c7e821536))
+
 ## [0.4.6](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.5...v0.4.6) (2025-10-21)
 
 
