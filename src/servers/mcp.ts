@@ -31,7 +31,7 @@ function createStructuredResponse(data: any) {
 
 export function createMcpServer(): McpServer {
   const mcpServer = new McpServer({
-    name: 'skippr-mcp',
+    name: "mcp-x-ray",
     version: packageJson.version,
   });
 
