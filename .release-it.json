@@ -4,7 +4,8 @@
     "commitMessage": "chore: release v${version}",
     "tagName": "v${version}",
     "requireCleanWorkingDir": false,
-    "requireCommits": true
+    "requireCommits": true,
+    "requireCommitsFail": false
   },
   "github": {
     "release": true,
