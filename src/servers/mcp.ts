@@ -18,6 +18,7 @@ import {
 } from './websocket.js';
 import { z } from 'zod';
 import { ServerToClientMessageSchema, ClientInfoSchema } from '../schemas/index.js';
+import packageJson from '../../package.json' with { type: 'json' };
 
 // Helper function to create MCP responses with structured content
 // When outputSchema is provided, the SDK validates the structuredContent field
@@ -31,7 +32,7 @@ function createStructuredResponse(data: any) {
 export function createMcpServer(): McpServer {
   const mcpServer = new McpServer({
     name: 'skippr-mcp',
-    version: '1.0.0',
+    version: packageJson.version,
   });
 
   // Register MCP Tools using the recommended registerTool() method

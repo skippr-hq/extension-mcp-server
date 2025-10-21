@@ -4,7 +4,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "skippr-mcp-x-ray": "dist/index.js"
+    "mcp-x-ray": "dist/index.js"
   },
   "engines": {
     "node": ">=22.0.0"
