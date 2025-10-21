@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.6](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.5...v0.4.6) (2025-10-21)
+
+
+### Bug Fixes
+
+* improve package bin configuration and add startup logging ([f141f62](https://github.com/skippr-hq/mcp-x-ray/commit/f141f628a25507134d521235ad41e5275e7fbe4c))
+
 ## [0.4.5](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.4...v0.4.5) (2025-10-21)
 
 
