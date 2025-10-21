@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.4.2](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.1...v0.4.2) (2025-10-21)
+
 ## [0.4.1](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.0...v0.4.1) (2025-10-21)
 
 # 0.4.0 (2025-10-21)
