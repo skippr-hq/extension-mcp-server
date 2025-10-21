@@ -7,7 +7,7 @@
     "skippr-mcp-x-ray": "dist/index.js"
   },
   "engines": {
-    "node": ">=14.8.0"
+    "node": ">=22.0.0"
   },
   "files": [
     "dist/**/*",
