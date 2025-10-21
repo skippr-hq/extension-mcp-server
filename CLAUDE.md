@@ -1,149 +1,143 @@
-# Skippr2Code
+# Skippr MCP X-Ray
 
 ## Overview
 
-This document outlines the design for a Model Context Protocol (MCP) server that bridges Skippr’s product review insights with AI coding agents. The integration enables developers to push product issues directly from the Skippr browser extension to their IDE, where AI agents can automatically implement fixes.
+**Skippr MCP X-Ray** is an npm package that provides a Model Context Protocol (MCP) server, enabling AI coding agents to access and fix product issues identified by the Skippr browser extension.
 
-## Problem Statement
+The package is published as `@skippr/mcp-x-ray` on npm and can be used with any MCP-compatible coding assistant (Claude Code, Cursor, Windsurf, etc.).
 
-Currently, when Skippr identifies product issues (UX, accessibility, performance, etc.), developers must manually interpret and fix each issue. This creates a disconnect between issue identification and resolution, slowing down the development cycle.
+## Package Information
 
-## Solution Overview
+- **Package Name**: `@skippr/mcp-x-ray`
+- **Type**: ES Module (`"type": "module"`)
+- **Entry Point**: `dist/index.js` (compiled from `src/index.ts`)
+- **Executable**: `skippr-mcp-x-ray` (bin command)
+- **Node Version**: >=22.x (for top-level await support)
 
-A lightweight MCP server that:
-- Receives issues from the Skippr extension via HTTP
-- Creates local markdown files for AI agents to access
-- Provides MCP tools for issue reading, validation, and resolution
-- Updates issue status in Skippr when fixes are applied
+## Project Structure
+
+```
+mcp/
+├── src/                          # TypeScript source files
+│   ├── index.ts                  # Main entry point (has shebang)
+│   ├── servers/
+│   │   ├── mcp.ts               # MCP server (stdio transport)
+│   │   └── websocket.ts         # WebSocket server (extension connection)
+│   ├── tools/                    # MCP tool implementations
+│   │   ├── list-issues.ts
+│   │   ├── list-projects.ts
+│   │   └── get-issue.ts
+│   ├── utils/                    # Utility functions
+│   │   ├── frontmatter-parser.ts
+│   │   ├── issues-reader.ts
+│   │   ├── issues-writer.ts
+│   │   └── working-directory.ts
+│   ├── schemas/                  # Zod schemas for validation
+│   │   └── index.ts
+│   └── types/                    # TypeScript type definitions
+│       └── index.ts
+├── tests/                        # Unit tests (Vitest)
+│   ├── servers/
+│   ├── tools/
+│   ├── utils/
+│   └── fixtures/
+├── dist/                         # Compiled JavaScript output
+├── .github/workflows/            # CI/CD automation
+│   └── publish.yml              # Automated npm publishing
+├── package.json                  # Package metadata and dependencies
+├── tsconfig.json                 # TypeScript configuration
+├── vitest.config.ts             # Vitest test configuration
+└── .release-it.json             # Release automation config
+
+```
 
 ## Architecture
 
-### Single Server, Dual Interface Pattern
+The server implements a **dual-interface pattern** running in a single Node.js process:
 
-Following the architecture pattern demonstrated by [BrowserMCP](https://github.com/BrowserMCP/mcp), our server implements two communication interfaces within a single Node.js process:
+1. **MCP stdio Interface** - Communicates with AI coding agents via standard input/output
+2. **WebSocket Server** (Port 4040) - Receives issues from Skippr browser extension
 
-1. **HTTP Endpoint** (Port 3456) - Receives issue data from the Skippr extension
-2. **MCP stdio Interface** - Communicates with AI coding agents (Claude, Cursor, Windsurf)
-
-**Reference Implementation**: BrowserMCP successfully uses this pattern to handle browser automation requests from extensions while providing MCP tools to AI agents.
-
-### System Flow
-
-```mermaid
-flowchart LR
-    subgraph Browser
-        Extension["Skippr Extension"]
-        Button["Push to Coding Agent Button"]
-    end
-
-    subgraph MCP_Server["MCP Server - Single Process"]
-        HTTP["HTTP Endpoint :3456"]
-        Tools["MCP Tools via stdio"]
-    end
-
-    subgraph IDE
-        Agent["AI Coding Agent"]
-        Files[".skippr/issues/*.md"]
-    end
-
-    subgraph API
-        Skippr["Skippr API"]
-    end
-
-    Button -->|1.POST /push-issues| HTTP
-    HTTP -->|2.Create Files| Files
-    Agent <-->|3.MCP Protocol| Tools
-    Tools -->|4.Read| Files
-    Tools -->|5.Validate| Skippr
-    Tools -->|6.Mark Resolved| Skippr
-```
-
-## Core Workflows
-
-### 1. Issue Push Workflow
-
-- User clicks “Push to Coding Agent” on an issue card in the extension
-- Extension sends POST request to local MCP server (http://localhost:3456/push-issue)
-- Server creates markdown file in `.skippr/reviews/{id}/issues/` directory
-- Server responds with success confirmation
-
-### 2. AI Fix Workflow
-
-- Developer prompts AI: “Fix the Skippr issues in my project”
-- AI uses `skippr_list_issues` tool to discover available issues
-- AI reads issue details using `skippr_get_issue` tool
-- AI implements fixes in the codebase
-- AI validates fix using `skippr_validate_fix` tool
-- AI marks issue as resolved using `skippr_mark_resolved` tool
-
-### 3. Validation Workflow
-
-- MCP server calls Skippr API to re-run specific agent check
-- Compares before/after state of the issue
-- Returns validation result to AI agent
-- Updates issue status if validation passes
-
-## File Structure
+### Data Flow
 
 ```
-project-root/
-└── .skippr/
-    └── reviews/
-        └── {review-id}/
-            ├── metadata.json       # Review metadata
-            └── issues/
-                ├── issue-{id}.md   # Individual issue files
-                └── ...
+Skippr Extension → WebSocket (4040) → Local .skippr/ files → MCP Tools → AI Coding Agent
 ```
 
-## MCP Tools Specification
+## MCP Tools
 
-### Core Tools
+The server provides three main tools for AI agents:
 
-| Tool | Purpose | Notes |
-| --- | --- | --- |
-| `skippr_list_issues` | List all available issues | Returns issues from `.skippr` directory |
-| `skippr_get_issue` | Get detailed issue information | Reads specific markdown file |
-| `skippr_validate_fix` | Check if issue is resolved | Calls Skippr API for re-validation |
-| `skippr_mark_resolved` | Mark issue as fixed | Updates status via Skippr API |
+| Tool | Purpose |
+|------|---------|
+| `list_projects` | List all projects with available issues |
+| `list_issues` | List all issues for a specific project or review |
+| `get_issue` | Get detailed information about a specific issue |
 
-## Extension Integration
+## Testing
 
-### UI/UX Changes
+**Framework**: Vitest
 
-- Add “Push to Coding Agent” button to each issue card
-- Show push status (pending/success/error)
-- Display resolution status when issue is fixed
+- **Location**: `tests/` directory
+- **Run tests**: `npm test`
+- **Test UI**: `npm run test:ui`
+- **Coverage**: `npm run test:coverage`
 
-### API Requirements
+Tests cover:
+- MCP server initialization and tool handling
+- WebSocket server connection and message parsing
+- Issue file reading/writing utilities
+- Frontmatter parsing for markdown files
 
-- HTTP POST endpoint at `localhost:3456/push-issue`
-- CORS enabled for browser extension
-- No authentication required (local-only communication)
+## Development
 
-### Compatibility
+### Scripts
 
-- Claude Desktop (via claude_desktop_config.json)
-- Cursor IDE (via settings.json)
-- Windsurf IDE (MCP compatible)
-- Any MCP-compatible AI coding assistant
+- `npm run dev` - Watch mode with tsx (hot reload)
+- `npm run build` - Compile TypeScript to JavaScript
+- `npm test` - Run unit tests
+- `npm start` - Run compiled server
+- `npm run inspector` - Debug with MCP inspector
+
+### Publishing
+
+Automated via GitHub Actions:
+1. Push to `main` branch triggers CI/CD
+2. Release It handles versioning based on conventional commits
+3. Builds, tests, and publishes to npm with provenance
+4. Creates GitHub release with changelog
+
+## Installation & Usage
+
+### For End Users
+
+```bash
+# Install globally
+npm install -g @skippr/mcp-x-ray
+
+# Or use with npx
+npx @skippr/mcp-x-ray
+```
+
+### For AI Coding Agents
+
+Add to Claude Code:
+```bash
+claude mcp add skippr-x-ray --transport stdio -- skippr-mcp-x-ray
+```
+
+## Key Technologies
+
+- **TypeScript** - Type-safe development
+- **Zod** - Runtime schema validation
+- **@modelcontextprotocol/sdk** - MCP protocol implementation
+- **ws** - WebSocket server
+- **gray-matter** - Markdown frontmatter parsing
+- **Vitest** - Unit testing framework
+- **Release It** - Automated versioning and publishing
 
 ## References
 
-- [BrowserMCP Architecture](https://github.com/BrowserMCP/mcp) - Example of dual-interface MCP server
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/)
 - [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
-
-## Appendix: Configuration Examples
-
-### Claude Desktop Configuration
-
-Users will add the Skippr MCP server to their Claude Desktop configuration file, pointing to their project directory as the working directory.
-
-### Issue Markdown Structure
-
-Standard markdown format with frontmatter for metadata, ensuring AI agents can easily parse and understand issue context.
-
----
-
-*Note: This document describes a simplified PoC implementation. Production deployment would require additional considerations for security, scalability, and error handling.*
+- [Skippr Website](https://skippr.ai)
