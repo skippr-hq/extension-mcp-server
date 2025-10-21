@@ -1,6 +1,6 @@
 {
   "name": "@skippr/mcp-x-ray",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
