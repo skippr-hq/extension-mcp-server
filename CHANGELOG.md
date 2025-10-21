@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.5](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.4...v0.4.5) (2025-10-21)
+
+
+### Bug Fixes
+
+* simplify bin configuration for standalone execution ([d154cde](https://github.com/skippr-hq/mcp-x-ray/commit/d154cdeb5064a050f89f18d3b05d37b19b11b40f))
+
 ## [0.4.4](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.3...v0.4.4) (2025-10-21)
 
 ## [0.4.3](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.2...v0.4.3) (2025-10-21)
