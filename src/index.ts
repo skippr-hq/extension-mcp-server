@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-
-/**
- * Main Server - Combines MCP Server (Stdio) and WebSocket Server
- *
- * - Stdio Transport: MCP tools for AI coding agents (Claude Code, Cursor, etc.)
- * - WebSocket: Receives issues from Skippr browser extension
- * - Both run in the same Node.js process
- */
-
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import dotenv from 'dotenv';
 import { createMcpServer } from './servers/mcp.js';
