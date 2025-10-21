@@ -2,9 +2,12 @@
   "name": "@skippr/mcp-x-ray",
   "version": "0.2.0",
   "type": "module",
-  "main": "./dist/server.js",
+  "main": "./dist/index.js",
   "bin": {
-    "skippr-mcp-x-ray": "dist/server.js"
+    "skippr-mcp-x-ray": "dist/index.js"
+  },
+  "engines": {
+    "node": ">=14.8.0"
   },
   "files": [
     "dist/**/*",
@@ -12,10 +15,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "node dist/index.js",
     "build": "tsc",
-    "dev": "tsx watch src/server.ts",
-    "inspector": "npx @modelcontextprotocol/inspector dist/server.js",
+    "dev": "tsx watch src/index.ts",
+    "inspector": "npx @modelcontextprotocol/inspector dist/index.js",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build && npm test",
     "release": "release-it",
