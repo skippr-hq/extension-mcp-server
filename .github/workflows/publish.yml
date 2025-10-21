@@ -16,9 +16,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0  # Fetch all history for changelog generation
+        ssh-key: ${{ secrets.DEPLOY_KEY }}
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
@@ -27,8 +28,8 @@ jobs:
 
     - name: Configure Git
       run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git config user.name "skippr MCP X-ray robot"
+        git config user.email "skippr-mcp-x-ray+bot@skippr.com"
 
     - name: Install dependencies
       run: |

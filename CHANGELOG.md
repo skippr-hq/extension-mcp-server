@@ -1,8 +1,12 @@
-# 0.2.0 (2025-10-21)
+# 0.3.0 (2025-10-21)
+
+### Bug Fixes
+
+* add shebang to enable npm bin executable ([456090d](https://github.com/skippr-hq/mcp-x-ray/commit/456090dc84b8189259ad6f86821acfd2fe360a8f))
 
 ### Features
 
-* Add issue handler to handle issues coming from the extension ([6b5686a](https://github.com/skippr-hq/mcp-x-ray/commit/6b5686a422631774ceb2622as63844ff97ecbf27))
+* Add issue handler to handle issues coming from the extension ([6b5686a](https://github.com/skippr-hq/mcp-x-ray/commit/6b5686a422631774ceb2622ac63844ff97ecbf27))
 * add restart websocket and enable bi directional communication ([65e5028](https://github.com/skippr-hq/mcp-x-ray/commit/65e5028ac9e15df79ef1d8206615403c5c6619c5))
 * Added basic mcp to receive messages from extension ([19d8066](https://github.com/skippr-hq/mcp-x-ray/commit/19d8066a47b1e68b47db8883ade88f9d6474fc6a))
 * implement read-only MCP tools for Skippr issues ([9a189f7](https://github.com/skippr-hq/mcp-x-ray/commit/9a189f73cb920c2b8b85aa304eb64dddd8845cf8))
