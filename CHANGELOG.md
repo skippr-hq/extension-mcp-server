@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.2...v0.4.3) (2025-10-21)
+
+
+### Bug Fixes
+
+* rename bin to mcp-x-ray for npx compatibility and derive version from package.json ([8b77163](https://github.com/skippr-hq/mcp-x-ray/commit/8b771630589496bcdbb7766f2a02acf04311079f))
+
 ## [0.4.2](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.1...v0.4.2) (2025-10-21)
 
 ## [0.4.1](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.0...v0.4.1) (2025-10-21)
