@@ -282,6 +282,7 @@ export function createMcpServer(): McpServer {
         projectId: z.string(),
         issueId: z.string(),
         verified: z.boolean().optional(),
+        reasoning: z.string().optional(),
         error: z.string().optional(),
         message: z.string(),
         details: z.any().optional()
@@ -301,6 +302,7 @@ export function createMcpServer(): McpServer {
           projectId: args.projectId,
           issueId: args.issueId,
           verified: response.verified,
+          reasoning: response.reasoning,
           error: response.error,
           message: response.message,
           details: response.details
