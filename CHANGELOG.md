@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.5.0](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.7...v0.5.0) (2025-10-22)
+
+
+### Features
+
+* include reasoning in output of validate fix tool ([d074af3](https://github.com/skippr-hq/mcp-x-ray/commit/d074af318bcb782d96e93c44be7d28c68766f183))
+
 ## [0.4.7](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.6...v0.4.7) (2025-10-21)
 
 
