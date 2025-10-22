@@ -182,9 +182,7 @@ export const VerifyIssueFixResponseSchema = z.object({
   success: z.boolean(),
   verified: z.boolean().optional(),
   message: z.string().optional(),
-    message: z.string().optional(),
-    reasoning: z.string().optional(),
-    error: z.string().optional(),
+  reasoning: z.string(),
   error: z.string().optional(),
   details: z.record(z.any()).optional(),
 });
