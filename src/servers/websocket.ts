@@ -18,7 +18,7 @@ import crypto from 'crypto';
 let wss: WebSocketServer | null = null;
 
 // Client tracking
-const clients = new Map<string, { ws: WebSocket; info: z.infer<typeof ClientInfoSchema> }>();
+const clients = new Map<string, { ws: WebSocket; info: z.infer<typeof ClientInfoSchema>; isAlive: boolean }>();
 const projectClients = new Map<string, Set<string>>(); // projectId -> Set of clientIds
 
 // Pending verification requests
@@ -28,6 +28,9 @@ interface PendingVerification {
   timeout: NodeJS.Timeout;
 }
 const pendingVerifications = new Map<string, PendingVerification>();
+
+// Global heartbeat monitoring interval
+let globalHeartbeatMonitor: NodeJS.Timeout | null = null;
 
 function generateClientId(): string {
   return crypto.randomBytes(16).toString('hex');
@@ -42,7 +45,7 @@ function addClient(clientId: string, ws: WebSocket, projectId: string, metadata?
     metadata
   };
 
-  clients.set(clientId, { ws, info: clientInfo });
+  clients.set(clientId, { ws, info: clientInfo, isAlive: true });
 
   if (!projectClients.has(projectId)) {
     projectClients.set(projectId, new Set());
@@ -70,6 +73,62 @@ function removeClient(clientId: string): void {
   }
 }
 
+/**
+ * Monitor all clients for heartbeat health
+ * Terminates connections that have been inactive for too long
+ */
+function monitorClientHealth(): void {
+  const now = Date.now();
+  const staleThreshold = 90000; // 90 seconds - time to consider a connection stale
+
+  console.log(`[monitorClientHealth] Checking health of ${clients.size} clients`);
+
+  for (const [clientId, client] of clients) {
+    const timeSinceLastActivity = now - client.info.lastActivity;
+
+    if (timeSinceLastActivity > staleThreshold) {
+      console.error(`[monitorClientHealth] Client ${clientId} has been inactive for ${timeSinceLastActivity}ms (threshold: ${staleThreshold}ms). Terminating connection.`);
+      console.error(`[monitorClientHealth] Client ${clientId} details: isAlive=${client.isAlive}, projectId=${client.info.projectId}, wsState=${client.ws.readyState}`);
+
+      // Terminate the connection
+      try {
+        client.ws.terminate();
+        removeClient(clientId);
+      } catch (error) {
+        console.error(`[monitorClientHealth] Error terminating client ${clientId}:`, error);
+      }
+    } else {
+      console.log(`[monitorClientHealth] Client ${clientId} healthy. Last activity: ${timeSinceLastActivity}ms ago, isAlive: ${client.isAlive}`);
+    }
+  }
+}
+
+/**
+ * Start global heartbeat monitoring
+ */
+function startGlobalHeartbeatMonitor(): void {
+  if (globalHeartbeatMonitor) {
+    console.log('[startGlobalHeartbeatMonitor] Heartbeat monitor already running');
+    return;
+  }
+
+  console.log('[startGlobalHeartbeatMonitor] Starting global heartbeat monitor (60s interval)');
+  globalHeartbeatMonitor = setInterval(() => {
+    monitorClientHealth();
+  }, 60000); // Check every 60 seconds
+}
+
+/**
+ * Stop global heartbeat monitoring
+ */
+function stopGlobalHeartbeatMonitor(): void {
+  if (globalHeartbeatMonitor) {
+    clearInterval(globalHeartbeatMonitor);
+    globalHeartbeatMonitor = null;
+    console.log('[stopGlobalHeartbeatMonitor] Stopped global heartbeat monitor');
+  }
+}
+
 export function createWebSocketServer(port: number): WebSocketServer {
   if (wss) {
     return wss;
@@ -77,8 +136,59 @@ export function createWebSocketServer(port: number): WebSocketServer {
 
   wss = new WebSocketServer({ port });
 
+  // Start global heartbeat monitoring
+  startGlobalHeartbeatMonitor();
+
   wss.on('connection', (ws: WebSocket) => {
     let clientId: string | null = null;
+
+    // Server-side heartbeat: Send ping to client every 30 seconds
+    const heartbeatInterval = setInterval(() => {
+      if (clientId) {
+        const client = clients.get(clientId);
+        if (client) {
+          // Check if client responded to previous ping
+          if (client.isAlive === false) {
+            console.error(`[WebSocket] Client ${clientId} failed heartbeat check. Terminating connection.`);
+            clearInterval(heartbeatInterval);
+            ws.terminate();
+            return;
+          }
+
+          // Mark as not alive, will be set back to true when pong is received
+          client.isAlive = false;
+
+          // Send ping message
+          try {
+            ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
+            console.log(`[WebSocket] Sent heartbeat ping to client ${clientId}`);
+          } catch (error) {
+            console.error(`[WebSocket] Failed to send heartbeat ping to client ${clientId}:`, error);
+            clearInterval(heartbeatInterval);
+          }
+        } else {
+          console.error(`[WebSocket] Heartbeat interval running for non-existent client ${clientId}. Clearing interval.`);
+          clearInterval(heartbeatInterval);
+        }
+      }
+    }, 30000); // Send ping every 30 seconds
+
+    // Track connection health
+    ws.on('ping', () => {
+      console.log(`[WebSocket] Received WebSocket ping frame from clientId: ${clientId || 'not registered'}`);
+    });
+
+    ws.on('pong', () => {
+      console.log(`[WebSocket] Received WebSocket pong frame from clientId: ${clientId || 'not registered'}`);
+      if (clientId) {
+        const client = clients.get(clientId);
+        if (client) {
+          client.isAlive = true;
+          console.log(`[WebSocket] Client ${clientId} marked as alive after pong frame`);
+        }
+      }
+    });
+
     ws.on('message', async (data: Buffer) => {
       const messageStr = data.toString();
 
@@ -102,6 +212,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
             if (clientId) {
               const existingClient = clients.get(clientId);
               if (existingClient && existingClient.info.projectId !== registration.projectId) {
+                console.error(`[WebSocket] Re-registration with different project not allowed. Current: ${existingClient.info.projectId}, New: ${registration.projectId}`);
                 throw new Error(
                   `Client already registered with project ${existingClient.info.projectId}. ` +
                   `Re-registration with different project ${registration.projectId} is not allowed. ` +
@@ -133,6 +244,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
               );
             }
           } catch (validationError) {
+            console.error(`[WebSocket] Registration validation error:`, validationError);
             ws.send(
               JSON.stringify({
                 type: 'registration_error',
@@ -158,7 +270,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
               pending.resolve(response);
             }
           } catch (validationError) {
-            console.error('Invalid verification response:', validationError);
+            console.error('[WebSocket] Invalid verification response:', validationError);
           }
         } else if (parsedMessage.type === 'write_issue') {
           try {
@@ -178,6 +290,31 @@ export function createWebSocketServer(port: number): WebSocketServer {
                 message: validationError instanceof Error ? validationError.message : 'Invalid message format',
               })
             );
+          }
+        } else if (parsedMessage.type === 'ping') {
+          // Handle ping message from client - respond with pong
+          ws.send(
+            JSON.stringify({
+              type: 'pong',
+              timestamp: Date.now(),
+            })
+          );
+          // Update heartbeat timestamp
+          if (clientId) {
+            const client = clients.get(clientId);
+            if (client) {
+              client.isAlive = true;
+              client.info.lastActivity = Date.now();
+            }
+          }
+        } else if (parsedMessage.type === 'pong') {
+          // Update heartbeat timestamp
+          if (clientId) {
+            const client = clients.get(clientId);
+            if (client) {
+              client.isAlive = true;
+              client.info.lastActivity = Date.now();
+            }
           }
         } else {
           ws.send(
@@ -200,14 +337,18 @@ export function createWebSocketServer(port: number): WebSocketServer {
     });
 
     ws.on('error', (error: Error) => {
-      console.error('WebSocket error:', error);
+      console.log(`[WebSocket] WebSocket error for clientId: ${clientId || 'not registered'}:`, error);
     });
 
     ws.on('close', () => {
+      // Clear heartbeat interval
+      clearInterval(heartbeatInterval);
+      console.log(`[WebSocket] Cleared heartbeat interval for clientId: ${clientId || 'not registered'}`);
+
       if (clientId) {
         removeClient(clientId);
       }
-      console.log('WebSocket connection closed');
+      console.log(`[WebSocket] Connection closed. Total clients after: ${clients.size}`);
     });
 
     // Send initial connection message
@@ -221,17 +362,24 @@ export function createWebSocketServer(port: number): WebSocketServer {
   });
 
   wss.on('error', (error: Error) => {
-    console.error('WebSocket server error:', error);
+    console.log('WebSocket server error:', error);
   });
   return wss;
 }
 
 export function closeWebSocketServer(): void {
   if (wss) {
+    console.log(`[closeWebSocketServer] Closing WebSocket server. Connected clients: ${clients.size}`);
+
+    // Stop global heartbeat monitoring
+    stopGlobalHeartbeatMonitor();
+
     wss.close(() => {
-      console.log('WebSocket server closed');
+      console.log('[closeWebSocketServer] WebSocket server closed');
     });
     wss = null;
+  } else {
+    console.log('[closeWebSocketServer] No WebSocket server to close');
   }
 }
 
@@ -240,17 +388,21 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
 
   try {
     if (wss) {
-      console.log(`Closing existing WebSocket server...`);
+      console.log(`[restartWebSocketServer] Closing existing WebSocket server. Connected clients: ${clients.size}`);
+
+      // Stop global heartbeat monitoring
+      stopGlobalHeartbeatMonitor();
+
       await new Promise<void>((resolve) => {
         wss!.close(() => {
-          console.log('Existing WebSocket server closed');
+          console.log(`[restartWebSocketServer] Existing WebSocket server closed. Clients remaining: ${clients.size}`);
           wss = null;
           resolve();
         });
       });
     }
 
-    console.log(`Starting WebSocket server on port ${targetPort}...`);
+    console.log(`[restartWebSocketServer] Starting WebSocket server on port ${targetPort}. Current clients: ${clients.size}`);
     const server = createWebSocketServer(targetPort);
 
     await new Promise<void>((resolve, reject) => {
@@ -260,7 +412,7 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
 
       server.once('listening', () => {
         clearTimeout(timeout);
-        console.log(`WebSocket server successfully started on port ${targetPort}`);
+        console.log(`[restartWebSocketServer] WebSocket server successfully started on port ${targetPort}. Current clients: ${clients.size}`);
         resolve();
       });
 
@@ -277,7 +429,7 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`Failed to restart WebSocket server: ${errorMessage}`);
+    console.error(`[restartWebSocketServer] Failed to restart WebSocket server: ${errorMessage}`, error);
 
     if ((error as any)?.code === 'EADDRINUSE') {
       return {
@@ -309,6 +461,12 @@ export function getWebSocketServerStatus(): { running: boolean; port?: number } 
 // Broadcasting functions for sending messages to extensions
 export function sendToExtension(extensionId: string, message: z.infer<typeof ServerToClientMessageSchema>): boolean {
   const client = clients.get(extensionId);
+
+  if (!client) {
+    console.log(`[sendToExtension] Client ${extensionId} not found in clients map. Available clients: ${Array.from(clients.keys()).join(', ')}`);
+    return false;
+  }
+
   if (client && client.ws.readyState === WebSocket.OPEN) {
     try {
       // Add timestamp and messageId if not present
@@ -320,7 +478,7 @@ export function sendToExtension(extensionId: string, message: z.infer<typeof Ser
       client.ws.send(JSON.stringify(serverMessage));
       return true;
     } catch (error) {
-      console.error(`Error sending message to extension ${extensionId}:`, error);
+      console.error(`[sendToExtension] Error sending message to extension ${extensionId}:`, error);
       return false;
     }
   }
@@ -332,6 +490,10 @@ export function sendMessageToProjectExtensions(projectId: string, message: z.inf
   let sent = 0;
   let failed = 0;
 
+  if (!clientIds || clientIds.size === 0) {
+    console.log(`[sendMessageToProjectExtensions] No clients found for project ${projectId}. Available projects: ${Array.from(projectClients.keys()).join(', ')}`);
+    return { sent: 0, failed: 0 };
+  }
   if (clientIds) {
     for (const clientId of clientIds) {
       if (sendToExtension(clientId, message)) {
@@ -362,7 +524,8 @@ export function broadcastToAllExtensions(message: z.infer<typeof ServerToClientM
 
 export function getConnectedExtensions(): Array<z.infer<typeof ClientInfoSchema>> {
   const clientList: Array<z.infer<typeof ClientInfoSchema>> = [];
-  for (const [, client] of clients) {
+  for (const [clientId, client] of clients) {
+    console.log(`[getConnectedExtensions] Client ${clientId}: project=${client.info.projectId}, connected=${new Date(client.info.connectedAt).toISOString()}`);
     clientList.push(client.info);
   }
   return clientList;
@@ -404,6 +567,7 @@ export async function verifyIssueFix(
   const sendResult = sendMessageToProjectExtensions(projectId, message);
 
   if (sendResult.sent === 0) {
+    console.log(`[verifyIssueFix] No clients connected for project ${projectId}. Total clients in map: ${clients.size}`);
     throw new Error(`No clients connected for project ${projectId}`);
   }
 
