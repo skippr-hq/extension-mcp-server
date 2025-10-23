@@ -48,8 +48,6 @@ function addClient(clientId: string, ws: WebSocket, projectId: string, metadata?
     projectClients.set(projectId, new Set());
   }
   projectClients.get(projectId)!.add(clientId);
-
-  console.log(`Client ${clientId} registered for project ${projectId}`);
 }
 
 function removeClient(clientId: string): void {
@@ -65,8 +63,6 @@ function removeClient(clientId: string): void {
         projectClients.delete(projectId);
       }
     }
-
-    console.log(`Client ${clientId} removed`);
   }
 }
 
@@ -99,7 +95,6 @@ export function createWebSocketServer(port: number): WebSocketServer {
           // Send ping message
           try {
             ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
-            console.log(`[WebSocket] Sent heartbeat ping to client ${clientId}`);
           } catch (error) {
             console.error(`[WebSocket] Failed to send heartbeat ping to client ${clientId}:`, error);
             clearInterval(heartbeatInterval);
@@ -113,16 +108,14 @@ export function createWebSocketServer(port: number): WebSocketServer {
 
     // Track connection health
     ws.on('ping', () => {
-      console.log(`[WebSocket] Received WebSocket ping frame from clientId: ${clientId || 'not registered'}`);
+      // WebSocket ping frame received
     });
 
     ws.on('pong', () => {
-      console.log(`[WebSocket] Received WebSocket pong frame from clientId: ${clientId || 'not registered'}`);
       if (clientId) {
         const client = clients.get(clientId);
         if (client) {
           client.isAlive = true;
-          console.log(`[WebSocket] Client ${clientId} marked as alive after pong frame`);
         }
       }
     });
@@ -273,12 +266,10 @@ export function createWebSocketServer(port: number): WebSocketServer {
     ws.on('close', () => {
       // Clear heartbeat interval
       clearInterval(heartbeatInterval);
-      console.log(`[WebSocket] Cleared heartbeat interval for clientId: ${clientId || 'not registered'}`);
 
       if (clientId) {
         removeClient(clientId);
       }
-      console.log(`[WebSocket] Connection closed. Total clients after: ${clients.size}`);
     });
 
     // Send initial connection message
@@ -299,14 +290,10 @@ export function createWebSocketServer(port: number): WebSocketServer {
 
 export function closeWebSocketServer(): void {
   if (wss) {
-    console.log(`[closeWebSocketServer] Closing WebSocket server. Connected clients: ${clients.size}`);
-
     wss.close(() => {
-      console.log('[closeWebSocketServer] WebSocket server closed');
+      // WebSocket server closed
     });
     wss = null;
-  } else {
-    console.log('[closeWebSocketServer] No WebSocket server to close');
   }
 }
 
@@ -315,18 +302,14 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
 
   try {
     if (wss) {
-      console.log(`[restartWebSocketServer] Closing existing WebSocket server. Connected clients: ${clients.size}`);
-
       await new Promise<void>((resolve) => {
         wss!.close(() => {
-          console.log(`[restartWebSocketServer] Existing WebSocket server closed. Clients remaining: ${clients.size}`);
           wss = null;
           resolve();
         });
       });
     }
 
-    console.log(`[restartWebSocketServer] Starting WebSocket server on port ${targetPort}. Current clients: ${clients.size}`);
     const server = createWebSocketServer(targetPort);
 
     await new Promise<void>((resolve, reject) => {
@@ -336,7 +319,6 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
 
       server.once('listening', () => {
         clearTimeout(timeout);
-        console.log(`[restartWebSocketServer] WebSocket server successfully started on port ${targetPort}. Current clients: ${clients.size}`);
         resolve();
       });
 
@@ -387,7 +369,6 @@ export function sendToExtension(extensionId: string, message: z.infer<typeof Ser
   const client = clients.get(extensionId);
 
   if (!client) {
-    console.log(`[sendToExtension] Client ${extensionId} not found in clients map. Available clients: ${Array.from(clients.keys()).join(', ')}`);
     return false;
   }
 
@@ -415,7 +396,6 @@ export function sendMessageToProjectExtensions(projectId: string, message: z.inf
   let failed = 0;
 
   if (!clientIds || clientIds.size === 0) {
-    console.log(`[sendMessageToProjectExtensions] No clients found for project ${projectId}. Available projects: ${Array.from(projectClients.keys()).join(', ')}`);
     return { sent: 0, failed: 0 };
   }
   if (clientIds) {
@@ -490,7 +470,6 @@ export async function verifyIssueFix(
   const sendResult = sendMessageToProjectExtensions(projectId, message);
 
   if (sendResult.sent === 0) {
-    console.log(`[verifyIssueFix] No clients connected for project ${projectId}. Total clients in map: ${clients.size}`);
     throw new Error(`No clients connected for project ${projectId}`);
   }
 
