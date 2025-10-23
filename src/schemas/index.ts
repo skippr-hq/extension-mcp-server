@@ -102,7 +102,7 @@ export const ClientRegistrationSchema = z.object({
 });
 
 // Server to client message types
-export const ServerMessageTypeSchema = z.enum(['notification', 'command', 'data', 'status']);
+export const ServerMessageTypeSchema = z.enum(['notification', 'command', 'data', 'status', 'ping', 'pong']);
 
 // Payload schemas for different message types
 export const NotificationPayloadSchema = z.object({
@@ -149,6 +149,16 @@ export const ServerToClientMessageSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('status'),
     payload: StatusPayloadSchema,
+    timestamp: z.number().optional(),
+    messageId: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('ping'),
+    timestamp: z.number().optional(),
+    messageId: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('pong'),
     timestamp: z.number().optional(),
     messageId: z.string().optional(),
   }),
