@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/skippr-hq/mcp-x-ray/compare/v0.5.0...v0.5.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* Added a heartbeat handler in websocket server ([c3f7659](https://github.com/skippr-hq/mcp-x-ray/commit/c3f76597f4a2fd4526a3e2a99242c4a0b82aaaac))
+
 # [0.5.0](https://github.com/skippr-hq/mcp-x-ray/compare/v0.4.7...v0.5.0) (2025-10-22)
 
 
