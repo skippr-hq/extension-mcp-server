@@ -29,9 +29,6 @@ interface PendingVerification {
 }
 const pendingVerifications = new Map<string, PendingVerification>();
 
-// Global heartbeat monitoring interval
-let globalHeartbeatMonitor: NodeJS.Timeout | null = null;
-
 function generateClientId(): string {
   return crypto.randomBytes(16).toString('hex');
 }
@@ -73,71 +70,12 @@ function removeClient(clientId: string): void {
   }
 }
 
-/**
- * Monitor all clients for heartbeat health
- * Terminates connections that have been inactive for too long
- */
-function monitorClientHealth(): void {
-  const now = Date.now();
-  const staleThreshold = 90000; // 90 seconds - time to consider a connection stale
-
-  console.log(`[monitorClientHealth] Checking health of ${clients.size} clients`);
-
-  for (const [clientId, client] of clients) {
-    const timeSinceLastActivity = now - client.info.lastActivity;
-
-    if (timeSinceLastActivity > staleThreshold) {
-      console.error(`[monitorClientHealth] Client ${clientId} has been inactive for ${timeSinceLastActivity}ms (threshold: ${staleThreshold}ms). Terminating connection.`);
-      console.error(`[monitorClientHealth] Client ${clientId} details: isAlive=${client.isAlive}, projectId=${client.info.projectId}, wsState=${client.ws.readyState}`);
-
-      // Terminate the connection
-      try {
-        client.ws.terminate();
-        removeClient(clientId);
-      } catch (error) {
-        console.error(`[monitorClientHealth] Error terminating client ${clientId}:`, error);
-      }
-    } else {
-      console.log(`[monitorClientHealth] Client ${clientId} healthy. Last activity: ${timeSinceLastActivity}ms ago, isAlive: ${client.isAlive}`);
-    }
-  }
-}
-
-/**
- * Start global heartbeat monitoring
- */
-function startGlobalHeartbeatMonitor(): void {
-  if (globalHeartbeatMonitor) {
-    console.log('[startGlobalHeartbeatMonitor] Heartbeat monitor already running');
-    return;
-  }
-
-  console.log('[startGlobalHeartbeatMonitor] Starting global heartbeat monitor (60s interval)');
-  globalHeartbeatMonitor = setInterval(() => {
-    monitorClientHealth();
-  }, 60000); // Check every 60 seconds
-}
-
-/**
- * Stop global heartbeat monitoring
- */
-function stopGlobalHeartbeatMonitor(): void {
-  if (globalHeartbeatMonitor) {
-    clearInterval(globalHeartbeatMonitor);
-    globalHeartbeatMonitor = null;
-    console.log('[stopGlobalHeartbeatMonitor] Stopped global heartbeat monitor');
-  }
-}
-
 export function createWebSocketServer(port: number): WebSocketServer {
   if (wss) {
     return wss;
   }
 
   wss = new WebSocketServer({ port });
-
-  // Start global heartbeat monitoring
-  startGlobalHeartbeatMonitor();
 
   wss.on('connection', (ws: WebSocket) => {
     let clientId: string | null = null;
@@ -291,29 +229,21 @@ export function createWebSocketServer(port: number): WebSocketServer {
               })
             );
           }
-        } else if (parsedMessage.type === 'ping') {
-          // Handle ping message from client - respond with pong
-          ws.send(
-            JSON.stringify({
-              type: 'pong',
-              timestamp: Date.now(),
-            })
-          );
-          // Update heartbeat timestamp
-          if (clientId) {
-            const client = clients.get(clientId);
-            if (client) {
-              client.isAlive = true;
-              client.info.lastActivity = Date.now();
-            }
+        } else if (parsedMessage.type === 'ping' || parsedMessage.type === 'pong') {
+          if (parsedMessage.type === 'ping') {
+            // Respond to client-initiated ping
+            ws.send(
+              JSON.stringify({
+                type: 'pong',
+                timestamp: Date.now(),
+              })
+            );
           }
-        } else if (parsedMessage.type === 'pong') {
-          // Update heartbeat timestamp
+          // Mark client as alive. lastActivity is already updated for all messages.
           if (clientId) {
             const client = clients.get(clientId);
             if (client) {
               client.isAlive = true;
-              client.info.lastActivity = Date.now();
             }
           }
         } else {
@@ -337,7 +267,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
     });
 
     ws.on('error', (error: Error) => {
-      console.log(`[WebSocket] WebSocket error for clientId: ${clientId || 'not registered'}:`, error);
+      console.error(`[WebSocket] WebSocket error for clientId: ${clientId || 'not registered'}:`, error);
     });
 
     ws.on('close', () => {
@@ -362,7 +292,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
   });
 
   wss.on('error', (error: Error) => {
-    console.log('WebSocket server error:', error);
+    console.error('WebSocket server error:', error);
   });
   return wss;
 }
@@ -370,9 +300,6 @@ export function createWebSocketServer(port: number): WebSocketServer {
 export function closeWebSocketServer(): void {
   if (wss) {
     console.log(`[closeWebSocketServer] Closing WebSocket server. Connected clients: ${clients.size}`);
-
-    // Stop global heartbeat monitoring
-    stopGlobalHeartbeatMonitor();
 
     wss.close(() => {
       console.log('[closeWebSocketServer] WebSocket server closed');
@@ -389,9 +316,6 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
   try {
     if (wss) {
       console.log(`[restartWebSocketServer] Closing existing WebSocket server. Connected clients: ${clients.size}`);
-
-      // Stop global heartbeat monitoring
-      stopGlobalHeartbeatMonitor();
 
       await new Promise<void>((resolve) => {
         wss!.close(() => {
@@ -524,8 +448,7 @@ export function broadcastToAllExtensions(message: z.infer<typeof ServerToClientM
 
 export function getConnectedExtensions(): Array<z.infer<typeof ClientInfoSchema>> {
   const clientList: Array<z.infer<typeof ClientInfoSchema>> = [];
-  for (const [clientId, client] of clients) {
-    console.log(`[getConnectedExtensions] Client ${clientId}: project=${client.info.projectId}, connected=${new Date(client.info.connectedAt).toISOString()}`);
+  for (const [, client] of clients) {
     clientList.push(client.info);
   }
   return clientList;
