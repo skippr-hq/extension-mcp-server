@@ -1,17 +1,17 @@
-# Skippr MCP X-Ray
+# Skippr2Code
 
 ## Overview
 
-**Skippr MCP X-Ray** is an npm package that provides a Model Context Protocol (MCP) server, enabling AI coding agents to access and fix product issues identified by the Skippr browser extension.
+**Skippr2Code** is an npm package that provides a Model Context Protocol (MCP) server, enabling AI coding agents to access and fix product issues identified by the Skippr browser extension.
 
-The package is published as `@skippr/mcp-x-ray` on npm and can be used with any MCP-compatible coding assistant (Claude Code, Cursor, Windsurf, etc.).
+The package is published as `@skippr/skippr2code` on npm and can be used with any MCP-compatible coding assistant (Claude Code, Cursor, Windsurf, etc.).
 
 ## Package Information
 
-- **Package Name**: `@skippr/mcp-x-ray`
+- **Package Name**: `@skippr/skippr2code`
 - **Type**: ES Module (`"type": "module"`)
 - **Entry Point**: `dist/index.js` (compiled from `src/index.ts`)
-- **Executable**: `skippr-mcp-x-ray` (bin command)
+- **Executable**: `skippr2code` (bin command)
 - **Node Version**: >=22.x (for top-level await support)
 
 ## Project Structure
@@ -113,17 +113,17 @@ Automated via GitHub Actions:
 
 ```bash
 # Install globally
-npm install -g @skippr/mcp-x-ray
+npm install -g @skippr/skippr2code
 
 # Or use with npx
-npx @skippr/mcp-x-ray
+npx @skippr/skippr2code
 ```
 
 ### For AI Coding Agents
 
 Add to Claude Code:
 ```bash
-claude mcp add skippr-x-ray --transport stdio -- skippr-mcp-x-ray
+claude mcp add skippr2code --transport stdio -- skippr2code
 ```
 
 ## Key Technologies
