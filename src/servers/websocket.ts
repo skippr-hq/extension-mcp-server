@@ -18,7 +18,7 @@ import crypto from 'crypto';
 let wss: WebSocketServer | null = null;
 
 // Client tracking
-const clients = new Map<string, { ws: WebSocket; info: z.infer<typeof ClientInfoSchema> }>();
+const clients = new Map<string, { ws: WebSocket; info: z.infer<typeof ClientInfoSchema>; isAlive: boolean }>();
 const projectClients = new Map<string, Set<string>>(); // projectId -> Set of clientIds
 
 // Pending verification requests
@@ -42,14 +42,12 @@ function addClient(clientId: string, ws: WebSocket, projectId: string, metadata?
     metadata
   };
 
-  clients.set(clientId, { ws, info: clientInfo });
+  clients.set(clientId, { ws, info: clientInfo, isAlive: true });
 
   if (!projectClients.has(projectId)) {
     projectClients.set(projectId, new Set());
   }
   projectClients.get(projectId)!.add(clientId);
-
-  console.log(`Client ${clientId} registered for project ${projectId}`);
 }
 
 function removeClient(clientId: string): void {
@@ -65,8 +63,6 @@ function removeClient(clientId: string): void {
         projectClients.delete(projectId);
       }
     }
-
-    console.log(`Client ${clientId} removed`);
   }
 }
 
@@ -79,6 +75,51 @@ export function createWebSocketServer(port: number): WebSocketServer {
 
   wss.on('connection', (ws: WebSocket) => {
     let clientId: string | null = null;
+
+    // Server-side heartbeat: Send ping to client every 30 seconds
+    const heartbeatInterval = setInterval(() => {
+      if (clientId) {
+        const client = clients.get(clientId);
+        if (client) {
+          // Check if client responded to previous ping
+          if (client.isAlive === false) {
+            console.error(`[WebSocket] Client ${clientId} failed heartbeat check. Terminating connection.`);
+            clearInterval(heartbeatInterval);
+            ws.terminate();
+            return;
+          }
+
+          // Mark as not alive, will be set back to true when pong is received
+          client.isAlive = false;
+
+          // Send ping message
+          try {
+            ws.send(JSON.stringify({ type: 'ping', timestamp: Date.now() }));
+          } catch (error) {
+            console.error(`[WebSocket] Failed to send heartbeat ping to client ${clientId}:`, error);
+            clearInterval(heartbeatInterval);
+          }
+        } else {
+          console.error(`[WebSocket] Heartbeat interval running for non-existent client ${clientId}. Clearing interval.`);
+          clearInterval(heartbeatInterval);
+        }
+      }
+    }, 30000); // Send ping every 30 seconds
+
+    // Track connection health
+    ws.on('ping', () => {
+      // WebSocket ping frame received
+    });
+
+    ws.on('pong', () => {
+      if (clientId) {
+        const client = clients.get(clientId);
+        if (client) {
+          client.isAlive = true;
+        }
+      }
+    });
+
     ws.on('message', async (data: Buffer) => {
       const messageStr = data.toString();
 
@@ -102,6 +143,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
             if (clientId) {
               const existingClient = clients.get(clientId);
               if (existingClient && existingClient.info.projectId !== registration.projectId) {
+                console.error(`[WebSocket] Re-registration with different project not allowed. Current: ${existingClient.info.projectId}, New: ${registration.projectId}`);
                 throw new Error(
                   `Client already registered with project ${existingClient.info.projectId}. ` +
                   `Re-registration with different project ${registration.projectId} is not allowed. ` +
@@ -133,6 +175,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
               );
             }
           } catch (validationError) {
+            console.error(`[WebSocket] Registration validation error:`, validationError);
             ws.send(
               JSON.stringify({
                 type: 'registration_error',
@@ -158,7 +201,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
               pending.resolve(response);
             }
           } catch (validationError) {
-            console.error('Invalid verification response:', validationError);
+            console.error('[WebSocket] Invalid verification response:', validationError);
           }
         } else if (parsedMessage.type === 'write_issue') {
           try {
@@ -178,6 +221,23 @@ export function createWebSocketServer(port: number): WebSocketServer {
                 message: validationError instanceof Error ? validationError.message : 'Invalid message format',
               })
             );
+          }
+        } else if (parsedMessage.type === 'ping' || parsedMessage.type === 'pong') {
+          if (parsedMessage.type === 'ping') {
+            // Respond to client-initiated ping
+            ws.send(
+              JSON.stringify({
+                type: 'pong',
+                timestamp: Date.now(),
+              })
+            );
+          }
+          // Mark client as alive. lastActivity is already updated for all messages.
+          if (clientId) {
+            const client = clients.get(clientId);
+            if (client) {
+              client.isAlive = true;
+            }
           }
         } else {
           ws.send(
@@ -200,14 +260,16 @@ export function createWebSocketServer(port: number): WebSocketServer {
     });
 
     ws.on('error', (error: Error) => {
-      console.error('WebSocket error:', error);
+      console.error(`[WebSocket] WebSocket error for clientId: ${clientId || 'not registered'}:`, error);
     });
 
     ws.on('close', () => {
+      // Clear heartbeat interval
+      clearInterval(heartbeatInterval);
+
       if (clientId) {
         removeClient(clientId);
       }
-      console.log('WebSocket connection closed');
     });
 
     // Send initial connection message
@@ -229,7 +291,7 @@ export function createWebSocketServer(port: number): WebSocketServer {
 export function closeWebSocketServer(): void {
   if (wss) {
     wss.close(() => {
-      console.log('WebSocket server closed');
+      // WebSocket server closed
     });
     wss = null;
   }
@@ -240,17 +302,14 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
 
   try {
     if (wss) {
-      console.log(`Closing existing WebSocket server...`);
       await new Promise<void>((resolve) => {
         wss!.close(() => {
-          console.log('Existing WebSocket server closed');
           wss = null;
           resolve();
         });
       });
     }
 
-    console.log(`Starting WebSocket server on port ${targetPort}...`);
     const server = createWebSocketServer(targetPort);
 
     await new Promise<void>((resolve, reject) => {
@@ -260,7 +319,6 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
 
       server.once('listening', () => {
         clearTimeout(timeout);
-        console.log(`WebSocket server successfully started on port ${targetPort}`);
         resolve();
       });
 
@@ -277,7 +335,7 @@ export async function restartWebSocketServer(port?: number): Promise<{ success: 
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error(`Failed to restart WebSocket server: ${errorMessage}`);
+    console.error(`[restartWebSocketServer] Failed to restart WebSocket server: ${errorMessage}`, error);
 
     if ((error as any)?.code === 'EADDRINUSE') {
       return {
@@ -309,6 +367,11 @@ export function getWebSocketServerStatus(): { running: boolean; port?: number } 
 // Broadcasting functions for sending messages to extensions
 export function sendToExtension(extensionId: string, message: z.infer<typeof ServerToClientMessageSchema>): boolean {
   const client = clients.get(extensionId);
+
+  if (!client) {
+    return false;
+  }
+
   if (client && client.ws.readyState === WebSocket.OPEN) {
     try {
       // Add timestamp and messageId if not present
@@ -320,7 +383,7 @@ export function sendToExtension(extensionId: string, message: z.infer<typeof Ser
       client.ws.send(JSON.stringify(serverMessage));
       return true;
     } catch (error) {
-      console.error(`Error sending message to extension ${extensionId}:`, error);
+      console.error(`[sendToExtension] Error sending message to extension ${extensionId}:`, error);
       return false;
     }
   }
@@ -332,6 +395,9 @@ export function sendMessageToProjectExtensions(projectId: string, message: z.inf
   let sent = 0;
   let failed = 0;
 
+  if (!clientIds || clientIds.size === 0) {
+    return { sent: 0, failed: 0 };
+  }
   if (clientIds) {
     for (const clientId of clientIds) {
       if (sendToExtension(clientId, message)) {
