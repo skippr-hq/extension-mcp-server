@@ -18,7 +18,7 @@ For example, in Claude Code, Cursor, or any MCP coding agent client, you can use
 * `Get details for issue abc-123 and help me fix it`
 * `What product issues do I have across all my projects?`
 
-## Setting up Skippr Extension MCP Server
+## Setting Up
 
 ## Prerequisites
 
