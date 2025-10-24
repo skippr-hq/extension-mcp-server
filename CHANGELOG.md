@@ -1,5 +1,12 @@
 # Changelog
 
+# [0.6.0](https://github.com/skippr-hq/extension-mcp-server/compare/v0.5.1...v0.6.0) (2025-10-24)
+
+
+### Features
+
+* Rename xray to extension-mcp-server ([a957deb](https://github.com/skippr-hq/extension-mcp-server/commit/a957deb7df4db10798c83e0d15108dba5174d114))
+
 ## [0.5.1](https://github.com/skippr-hq/mcp-x-ray/compare/v0.5.0...v0.5.1) (2025-10-23)
 
 
