@@ -4,37 +4,36 @@ import dotenv from 'dotenv';
 import { createMcpServer } from './servers/mcp.js';
 import { createWebSocketServer, closeWebSocketServer } from './servers/websocket.js';
 
-const LOG_PREFIX = '[Skippr2Code]'
 console.error('${LOG_PREFIX} Starting server...');
 
 try {
   dotenv.config();
-  console.error(`${LOG_PREFIX} Environment loaded`);
+  console.error(`Environment loaded`);
 
   // Create and connect MCP server with stdio transport
-  console.error(`${LOG_PREFIX} Creating MCP server...`);
+  console.error(`Creating MCP server...`);
   const mcpServer = createMcpServer();
 
-  console.error(`${LOG_PREFIX} Initializing stdio transport...`);
+  console.error(`Initializing stdio transport...`);
   const stdioTransport = new StdioServerTransport();
 
-  console.error(`${LOG_PREFIX} Connecting MCP server...`);
+  console.error(`Connecting MCP server...`);
   await mcpServer.connect(stdioTransport);
-  console.error(`${LOG_PREFIX} MCP server connected successfully`);
+  console.error(`MCP server connected successfully`);
 
   // Start WebSocket server (for Skippr extension)
   const wsPort = parseInt(process.env.WS_PORT || '4040', 10);
-  console.error(`${LOG_PREFIX} Starting WebSocket server on port ${wsPort}...`);
+  console.error(`Starting WebSocket server on port ${wsPort}...`);
   createWebSocketServer(wsPort);
-  console.error(`${LOG_PREFIX} WebSocket server started`);
+  console.error(`WebSocket server started`);
 
   // Graceful shutdown
   process.on('SIGINT', () => {
-    console.error(`\n${LOG_PREFIX} Shutting down servers...`);
+    console.error(`\nShutting down servers...`);
     closeWebSocketServer();
     process.exit(0);
   });
 } catch (error) {
-  console.error(`${LOG_PREFIX} Fatal error during startup:`, error);
+  console.error(`Fatal error during startup:`, error);
   process.exit(1);
 }

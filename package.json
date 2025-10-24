@@ -1,10 +1,10 @@
 {
-  "name": "@skippr/skippr2code",
+  "name": "@skippr/skippr-extension-mcp-server",
   "version": "0.5.1",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
-    "skippr2code": "./dist/index.js"
+    "skippr-extension-mcp-server": "./dist/index.js"
   },
   "engines": {
     "node": ">=22.0.0"
@@ -40,8 +40,8 @@
   "license": "MIT",
   "description": "MCP server that bridges Skippr product review insights with AI coding agents. Enables developers to automatically fix UX, accessibility, and product issues identified by Skippr's browser extension using natural language commands in Claude Code, Cursor, Windsurf, and other MCP-compatible coding assistants.",
   "homepage": "https://skippr.ai",
-  "repository": "github:skippr-hq/skippr2code",
-  "bugs": "https://github.com/skippr-hq/skippr2code/issues",
+  "repository": "github:skippr-hq/skippr-extension-mcp-server",
+  "bugs": "https://github.com/skippr-hq/skippr-extension-mcp-server/issues",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.19.1",
     "dotenv": "^16.4.7",
