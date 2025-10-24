@@ -1,6 +1,6 @@
 # Skippr Extension MCP Server
 
-**skippr-extension-mcp-server** acts as a bridge between product issues identified by Skippr's browser extension. Built upon MCP, it enables your coding agent to discover, understand, and fix issues such as UX inconsistencies, accessibility violations, and product quality problems seamlessly.
+**Skippr Extension MCP Server** acts as a bridge between product issues identified by Skippr's browser extension. Built upon MCP, it enables your coding agent to discover, understand, and fix issues such as UX inconsistencies, accessibility violations, and product quality problems seamlessly.
 
 ## Key Features
 
@@ -18,7 +18,7 @@ For example, in Claude Code, Cursor, or any MCP coding agent client, you can use
 * `Get details for issue abc-123 and help me fix it`
 * `What product issues do I have across all my projects?`
 
-## Setting up skippr-extension-mcp-server
+## Setting up Skippr Extension MCP Server
 
 ## Prerequisites
 
@@ -32,7 +32,7 @@ Before setting up the Skippr MCP server, ensure you have:
 Add the Skippr MCP server to your Claude Code configuration:
 
 ```bash
-claude mcp add skippr-extension-mcp -- npx -y @skippr/skippr-extension-mcp-server
+claude mcp add skippr-extension-mcp -- npx -y @skippr/extension-mcp-server
 ```
 
 ## Support

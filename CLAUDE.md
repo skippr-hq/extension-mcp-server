@@ -1,14 +1,14 @@
-# skippr-extension-mcp-server
+# extension-mcp-server
 
 ## Overview
 
-**Skippr2Code** is an npm package that provides a Model Context Protocol (MCP) server, enabling AI coding agents to access and fix product issues identified by the Skippr browser extension.
+**Skippr Extension MCP Server** is an npm package that provides a Model Context Protocol (MCP) server, enabling AI coding agents to access and fix product issues identified by the Skippr browser extension.
 
-The package is published as `@skippr/skippr-extension-mcp-server` on npm and can be used with any MCP-compatible coding assistant (Claude Code, Cursor, Windsurf, etc.).
+The package is published as `@skippr/extension-mcp-server` on npm and can be used with any MCP-compatible coding assistant (Claude Code, Cursor, Windsurf, etc.).
 
 ## Package Information
 
-- **Package Name**: `@skippr/skippr-extension-mcp-server`
+- **Package Name**: `@skippr/extension-mcp-server`
 - **Type**: ES Module (`"type": "module"`)
 - **Entry Point**: `dist/index.js` (compiled from `src/index.ts`)
 - **Executable**: `skippr-extension-mcp-server` (bin command)

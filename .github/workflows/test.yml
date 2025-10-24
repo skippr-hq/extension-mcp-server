@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    if: "github.event.head_commit.author.email != 'skippr-extension-mcp-server+bot@skippr.com'"
+    if: "github.event.head_commit.author.email != 'extension-mcp-server+bot@skippr.com'"
 
     strategy:
       matrix:
