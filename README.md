@@ -65,7 +65,7 @@ After adding the configuration, restart Cursor to activate the MCP server.
 <details>
 <summary><b>Install in VS Code + Copilot</b></summary>
 
-Add this to your VS Code MCP config file. See [VS Code MCP docs](https://code.visualstudio.com/docs/copilot/chat/mcp-servers) for more info.
+Add the following to your VS Code `settings.json` file (accessible via Command Palette > `Preferences: Open User Settings (JSON)`). See [VS Code MCP docs](https://code.visualstudio.com/docs/copilot/chat/mcp-servers) for more info.
 
 ```json
 "mcp": {
