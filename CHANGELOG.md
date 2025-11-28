@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.6.1](/compare/v0.6.0...v0.6.1) (2025-11-28)
+
 # [0.6.0](https://github.com/skippr-hq/extension-mcp-server/compare/v0.5.1...v0.6.0) (2025-10-24)
 
 
