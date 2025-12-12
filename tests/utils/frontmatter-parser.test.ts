@@ -8,9 +8,9 @@ describe('frontmatter-parser', () => {
 id: "7b8efc72-0122-4589-bbaa-07fb53ec0e26"
 reviewId: "5ac5c81b-1634-4bd2-8e64-7d926a9ba1c0"
 title: "Color is Used as a Primary Means of Conveying Information"
-severity: "medium"
+severity: "moderate"
 resolved: false
-agentTypes: ["a11y"]
+category: "accessibility"
 elementMetadata:
   selector: 'div.flex.flex-col.lg\:flex-row'
   bounding_box: [48, 451, 1184, 448]
@@ -34,9 +34,9 @@ This is feedback from an AI Accessibility Expert.
       expect(result.frontmatter.id).toBe('7b8efc72-0122-4589-bbaa-07fb53ec0e26');
       expect(result.frontmatter.reviewId).toBe('5ac5c81b-1634-4bd2-8e64-7d926a9ba1c0');
       expect(result.frontmatter.title).toBe('Color is Used as a Primary Means of Conveying Information');
-      expect(result.frontmatter.severity).toBe('medium');
+      expect(result.frontmatter.severity).toBe('moderate');
       expect(result.frontmatter.resolved).toBe(false);
-      expect(result.frontmatter.agentTypes).toEqual(['a11y']);
+      expect(result.frontmatter.category).toBe('accessibility');
       expect(result.frontmatter.elementMetadata).toEqual({
         selector: 'div.flex.flex-col.lg:flex-row',
         bounding_box: [48, 451, 1184, 448],
@@ -55,7 +55,7 @@ id: "7b8efc72-0122-4589-bbaa-07fb53ec0e26"
 reviewId: "5ac5c81b-1634-4bd2-8e64-7d926a9ba1c0"
 title: "Simple Issue"
 severity: "low"
-agentTypes: ["ux"]
+category: "product_design"
 ---
 
 ## Details
@@ -71,21 +71,21 @@ Simple issue details.`;
       expect(result.content).toContain('Simple issue details.');
     });
 
-    it('should handle multiple agent types', () => {
+    it('should handle category field', () => {
       const markdown = `---
 id: "7b8efc72-0122-4589-bbaa-07fb53ec0e26"
 reviewId: "5ac5c81b-1634-4bd2-8e64-7d926a9ba1c0"
-title: "Multi-agent Issue"
-severity: "high"
-agentTypes: ["ux", "a11y", "content"]
+title: "Product Design Issue"
+severity: "critical"
+category: "product_design"
 ---
 
-Issue found by multiple agents.`;
+Issue found by product design analysis.`;
 
       const result = parseIssueFrontmatter(markdown);
 
-      expect(result.frontmatter.agentTypes).toEqual(['ux', 'a11y', 'content']);
-      expect(result.content).toContain('Issue found by multiple agents.');
+      expect(result.frontmatter.category).toBe('product_design');
+      expect(result.content).toContain('Issue found by product design analysis.');
     });
 
     it('should throw error for invalid severity', () => {
@@ -94,7 +94,7 @@ id: "7b8efc72-0122-4589-bbaa-07fb53ec0e26"
 reviewId: "5ac5c81b-1634-4bd2-8e64-7d926a9ba1c0"
 title: "Invalid Issue"
 severity: "invalid"
-agentTypes: ["ux"]
+category: "product_design"
 ---
 
 Test`;
@@ -108,7 +108,7 @@ id: "not-a-uuid"
 reviewId: "5ac5c81b-1634-4bd2-8e64-7d926a9ba1c0"
 title: "Invalid Issue"
 severity: "low"
-agentTypes: ["ux"]
+category: "product_design"
 ---
 
 Test`;
@@ -121,7 +121,7 @@ Test`;
 id: "7b8efc72-0122-4589-bbaa-07fb53ec0e26"
 title: "Missing reviewId"
 severity: "low"
-agentTypes: ["ux"]
+category: "product_design"
 ---
 
 Test`;
@@ -134,8 +134,8 @@ Test`;
 id: "7b8efc72-0122-4589-bbaa-07fb53ec0e26"
 reviewId: "5ac5c81b-1634-4bd2-8e64-7d926a9ba1c0"
 title: "Test"
-severity: "info"
-agentTypes: ["pm"]
+severity: "low"
+category: "product_management"
 ---
 
 ## Agent Prompt

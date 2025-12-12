@@ -6,9 +6,8 @@
 import { z } from 'zod';
 
 // Enums
-export const IssueSeveritySchema = z.enum(['critical', 'high', 'medium', 'low', 'info']);
-
-export const AgentTypeSchema = z.enum(['ux', 'a11y', 'pm', 'pmm', 'legal', 'content', 'users']);
+export const IssueSeveritySchema = z.enum(['critical', 'moderate', 'low']);
+export const CategorySchema = z.enum(['product_design', 'product_management', 'accessibility', 'content']);
 
 // Element metadata schema
 export const ElementMetadataSchema = z.object({
@@ -34,7 +33,7 @@ export const IssueSchema = z.object({
   actions: IssueActionsSchema.optional(),
   userFeedback: z.record(z.any()).optional(),
   resolved: z.boolean(),
-  agentTypes: z.array(AgentTypeSchema),
+  category: CategorySchema.optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -46,14 +45,14 @@ export const IssueSummarySchema = z.object({
   title: z.string(),
   severity: IssueSeveritySchema,
   resolved: z.boolean(),
-  agentTypes: z.array(AgentTypeSchema),
+  category: CategorySchema.optional(),
 });
 
 // List issues options schema
 export const ListIssuesOptionsSchema = z.object({
   reviewId: z.string().uuid().optional(),
   severity: IssueSeveritySchema.optional(),
-  agentType: AgentTypeSchema.optional(),
+  category: CategorySchema.optional(),
   resolved: z.boolean().optional(),
 });
 
@@ -64,7 +63,7 @@ export const IssueFrontmatterSchema = z.object({
   title: z.string(),
   severity: IssueSeveritySchema,
   resolved: z.boolean().default(false),
-  agentTypes: z.array(AgentTypeSchema),
+  category: CategorySchema.optional(),
   elementMetadata: ElementMetadataSchema.optional(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
@@ -79,12 +78,14 @@ export const WriteIssueMessageSchema = z.object({
   title: z.string(),
   severity: IssueSeveritySchema,
   resolved: z.boolean().optional(),
-  agentTypes: z.array(AgentTypeSchema),
+  category: CategorySchema.optional(),
   elementMetadata: ElementMetadataSchema.optional(),
   details: z.string(),
-  agentPrompt: z.string(),
+  agentPrompt: z.string().optional(),
   ticket: z.string().optional(),
   timestamp: z.number(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
 });
 
 // Metadata schema shared across client-related schemas

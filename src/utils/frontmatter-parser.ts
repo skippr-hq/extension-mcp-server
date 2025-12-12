@@ -12,7 +12,7 @@ export interface ParsedIssueFrontmatter {
   title: string;
   severity: string;
   resolved: boolean;
-  agentTypes: string[];
+  category?: string;
   elementMetadata?: {
     selector: string;
     bounding_box?: number[];

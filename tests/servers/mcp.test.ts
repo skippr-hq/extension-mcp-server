@@ -51,9 +51,9 @@ describe('MCP Server', () => {
           id: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
           reviewId: '223e4567-e89b-12d3-a456-426614174001',
           title: 'Test Issue',
-          severity: 'medium' as const,
+          severity: 'moderate' as const,
           resolved: false,
-          agentTypes: ['ux' as const]
+          category: 'product_design' as const
         }],
         totalCount: 1
       };
@@ -70,9 +70,9 @@ describe('MCP Server', () => {
         id: 'issue-1',
         reviewId: 'review-1',
         title: 'Test Issue',
-        severity: 'medium',
+        severity: 'moderate',
         resolved: false,
-        agentTypes: ['ux'],
+        category: 'product_design',
         markdown: '## Details\n\nTest content'
       };
       vi.mocked(getIssueModule.getIssue).mockResolvedValue(mockResult);

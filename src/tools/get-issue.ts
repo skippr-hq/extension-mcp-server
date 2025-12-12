@@ -20,7 +20,7 @@ export const GetIssueOutputSchema = z.object({
   title: z.string(),
   severity: z.string(),
   resolved: z.boolean(),
-  agentTypes: z.array(z.string()),
+  category: z.string().optional(),
   elementMetadata: z
     .object({
       selector: z.string(),
@@ -54,7 +54,7 @@ export async function getIssue(input: GetIssueInput): Promise<GetIssueOutput> {
     title: frontmatter.title,
     severity: frontmatter.severity,
     resolved: frontmatter.resolved,
-    agentTypes: frontmatter.agentTypes,
+    category: frontmatter.category,
     elementMetadata: frontmatter.elementMetadata,
     markdown, // Raw markdown for Claude to read
   };

@@ -24,9 +24,9 @@ describe('get-issue tool', () => {
     expect(result.id).toBe('7b8efc72-0122-4589-bbaa-07fb53ec0e26');
     expect(result.reviewId).toBe('223e4567-e89b-12d3-a456-426614174001');
     expect(result.title).toBe('Button Color Inconsistency');
-    expect(result.severity).toBe('medium');
+    expect(result.severity).toBe('moderate');
     expect(result.resolved).toBe(false);
-    expect(result.agentTypes).toEqual(['ux']);
+    expect(result.category).toBe('product_design');
     expect(result.elementMetadata).toEqual({
       selector: 'button.secondary-cta',
       bounding_box: [100, 200, 150, 40],
@@ -50,16 +50,6 @@ describe('get-issue tool', () => {
     expect(result.title).toBe('Headline Needs Improvement');
     expect(result.elementMetadata).toBeUndefined();
     expect(result.markdown).toContain('## Details');
-  });
-
-  it('should get issue with multiple agent types', async () => {
-    const result = await getIssue({
-      projectId: PROJECT_ID,
-      reviewId: '223e4567-e89b-12d3-a456-426614174002',
-      issueId: '00e2a583-dd11-4d19-ba94-67c536fbb554',
-    });
-
-    expect(result.agentTypes).toEqual(['content', 'pmm']);
   });
 
   it('should get resolved issue', async () => {
