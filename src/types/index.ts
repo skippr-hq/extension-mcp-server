@@ -68,7 +68,7 @@ export interface ListIssuesOptions {
  */
 export interface WriteIssueMessage {
   type: string;
-  projectId?: string;
+  projectId: string;
   reviewId: string;
   issueId: string;
   title: string;

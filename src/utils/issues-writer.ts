@@ -19,9 +19,6 @@ export async function writeIssue(projectId: string, message: WriteIssueMessage):
     // Create directories if they don't exist
     await mkdir(issuesDir, { recursive: true });
 
-    // Use category or default to skippr
-    const category = message.category || 'skippr';
-
     // Create frontmatter with timestamps
     const now = new Date().toISOString();
     const frontmatter: any = {
@@ -30,7 +27,7 @@ export async function writeIssue(projectId: string, message: WriteIssueMessage):
       title: message.title,
       severity: message.severity,
       resolved: message.resolved ?? false,
-      category,
+      category: message.category,
       createdAt: message.created_at || now,
       updatedAt: message.updated_at || now,
     };
