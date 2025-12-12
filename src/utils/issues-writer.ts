@@ -19,6 +19,9 @@ export async function writeIssue(projectId: string, message: WriteIssueMessage):
     // Create directories if they don't exist
     await mkdir(issuesDir, { recursive: true });
 
+    // Use category or default to skippr
+    const category = message.category || 'skippr';
+
     // Create frontmatter with timestamps
     const now = new Date().toISOString();
     const frontmatter: any = {
@@ -27,14 +30,16 @@ export async function writeIssue(projectId: string, message: WriteIssueMessage):
       title: message.title,
       severity: message.severity,
       resolved: message.resolved ?? false,
-      agentTypes: message.agentTypes,
-      createdAt: now,
-      updatedAt: now,
+      category,
+      createdAt: message.created_at || now,
+      updatedAt: message.updated_at || now,
     };
 
     if (message.elementMetadata) {
       frontmatter.elementMetadata = message.elementMetadata;
     }
+
+    const agentPrompt = message.agentPrompt || 'No specific prompt provided';
 
     // Create markdown sections
     const sections = [
@@ -44,11 +49,12 @@ export async function writeIssue(projectId: string, message: WriteIssueMessage):
       '',
       '## Agent Prompt',
       '',
-      message.agentPrompt,
+      agentPrompt,
     ];
 
-    if (message.ticket) {
-      sections.push('', '## Ticket', '', message.ticket);
+    const ticket = message.ticket;
+    if (ticket) {
+      sections.push('', '## Ticket', '', ticket);
     }
 
     const markdown = sections.join('\n');

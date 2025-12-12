@@ -37,9 +37,9 @@ describe('issues-writer', () => {
         reviewId: '223e4567-e89b-12d3-a456-426614174001',
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
         title: 'Button Color Inconsistency',
-        severity: 'medium',
+        severity: 'moderate',
         resolved: false,
-        agentTypes: ['ux'],
+        category: 'product_design',
         elementMetadata: {
           selector: 'button.secondary-cta',
           bounding_box: [100, 200, 150, 40],
@@ -64,7 +64,7 @@ describe('issues-writer', () => {
       expect(result.frontmatter.title).toBe(message.title);
       expect(result.frontmatter.severity).toBe(message.severity);
       expect(result.frontmatter.resolved).toBe(false);
-      expect(result.frontmatter.agentTypes).toEqual(['ux']);
+      expect(result.frontmatter.category).toBe('product_design');
       expect(result.frontmatter.elementMetadata).toEqual(message.elementMetadata);
       expect(result.frontmatter.createdAt).toBeDefined();
       expect(result.frontmatter.updatedAt).toBeDefined();
@@ -85,7 +85,7 @@ describe('issues-writer', () => {
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
         title: 'Simple Issue',
         severity: 'low',
-        agentTypes: ['a11y'],
+        category: 'accessibility',
         details: 'Simple issue details.',
         agentPrompt: 'Simple instructions.',
         timestamp: Date.now(),
@@ -109,8 +109,8 @@ describe('issues-writer', () => {
         reviewId: 'new-review-uuid',
         issueId: 'new-issue-uuid',
         title: 'Test',
-        severity: 'info',
-        agentTypes: ['pm'],
+        severity: 'low',
+        category: 'product_management',
         details: 'Test details',
         agentPrompt: 'Test prompt',
         timestamp: Date.now(),
@@ -131,7 +131,7 @@ describe('issues-writer', () => {
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
         title: 'Test',
         severity: 'low',
-        agentTypes: ['ux'],
+        category: 'product_design',
         details: 'Test',
         agentPrompt: 'Test',
         timestamp: Date.now(),
@@ -157,8 +157,8 @@ describe('issues-writer', () => {
         reviewId: '223e4567-e89b-12d3-a456-426614174001',
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
         title: 'Test',
-        severity: 'medium',
-        agentTypes: ['ux'],
+        severity: 'moderate',
+        category: 'product_design',
         details: 'Details with **bold** and *italic*.\n\n- Bullet 1\n- Bullet 2',
         agentPrompt: '**Task**: Fix it\n\nSteps:\n1. Step one\n2. Step two',
         timestamp: Date.now(),
@@ -174,16 +174,16 @@ describe('issues-writer', () => {
       expect(result.markdown).toContain('1. Step one');
     });
 
-    it('should handle multiple agent types', async () => {
+    it('should handle category field', async () => {
       const message: WriteIssueMessage = {
         type: 'write_issue',
         reviewId: '223e4567-e89b-12d3-a456-426614174001',
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
-        title: 'Multi-agent Issue',
-        severity: 'high',
-        agentTypes: ['ux', 'a11y', 'content'],
-        details: 'Issue found by multiple agents.',
-        agentPrompt: 'Instructions for multiple agents.',
+        title: 'Product Design Issue',
+        severity: 'critical',
+        category: 'product_design',
+        details: 'Issue found by product design analysis.',
+        agentPrompt: 'Instructions for fixing the issue.',
         timestamp: Date.now(),
       };
 
@@ -191,7 +191,7 @@ describe('issues-writer', () => {
 
       const result = await readIssueFile(testProjectId, message.reviewId, message.issueId);
 
-      expect(result.frontmatter.agentTypes).toEqual(['ux', 'a11y', 'content']);
+      expect(result.frontmatter.category).toBe('product_design');
     });
 
     it('should throw error on write failure', async () => {
@@ -202,7 +202,7 @@ describe('issues-writer', () => {
         issueId: '7b8efc72-0122-4589-bbaa-07fb53ec0e26',
         title: 'Test',
         severity: 'low',
-        agentTypes: ['ux'],
+        category: 'product_design',
         details: 'Test',
         agentPrompt: 'Test',
         timestamp: Date.now(),

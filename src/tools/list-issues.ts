@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { findAllIssues, readIssueFile } from '../utils/issues-reader.js';
-import { IssueSeveritySchema, AgentTypeSchema } from '../schemas/index.js';
+import { IssueSeveritySchema, CategorySchema } from '../schemas/index.js';
 import type { IssueSummary } from '../types/index.js';
 
 // Input schema for the tool
@@ -13,7 +13,7 @@ export const ListIssuesInputSchema = z.object({
   projectId: z.string().describe('Project identifier'),
   reviewId: z.string().uuid().optional().describe('Filter by review ID'),
   severity: IssueSeveritySchema.optional().describe('Filter by severity level'),
-  agentType: AgentTypeSchema.optional().describe('Filter by agent type'),
+  category: CategorySchema.optional().describe('Filter by category'),
   resolved: z.boolean().optional().describe('Filter by resolved status'),
 });
 
@@ -26,7 +26,7 @@ export const ListIssuesOutputSchema = z.object({
       title: z.string(),
       severity: IssueSeveritySchema,
       resolved: z.boolean(),
-      agentTypes: z.array(AgentTypeSchema),
+      category: CategorySchema.optional(),
     })
   ),
   totalCount: z.number(),
@@ -42,7 +42,7 @@ export type ListIssuesOutput = z.infer<typeof ListIssuesOutputSchema>;
 export async function listIssues(input: ListIssuesInput): Promise<ListIssuesOutput> {
   // Validate input
   const validated = ListIssuesInputSchema.parse(input);
-  const { projectId, reviewId, severity, agentType, resolved } = validated;
+  const { projectId, reviewId, severity, category, resolved } = validated;
 
   // Find all issue file paths
   const issueFiles = await findAllIssues(projectId);
@@ -64,7 +64,7 @@ export async function listIssues(input: ListIssuesInput): Promise<ListIssuesOutp
       // Apply filters
       if (reviewId && frontmatter.reviewId !== reviewId) continue;
       if (severity && frontmatter.severity !== severity) continue;
-      if (agentType && !frontmatter.agentTypes.includes(agentType)) continue;
+      if (category && frontmatter.category !== category) continue;
       if (resolved !== undefined && frontmatter.resolved !== resolved) continue;
 
       // Add to results
@@ -74,7 +74,7 @@ export async function listIssues(input: ListIssuesInput): Promise<ListIssuesOutp
         title: frontmatter.title,
         severity: frontmatter.severity as IssueSummary['severity'],
         resolved: frontmatter.resolved,
-        agentTypes: frontmatter.agentTypes as IssueSummary['agentTypes'],
+        category: frontmatter.category as IssueSummary['category'],
       });
     } catch (error) {
       // Skip files that can't be parsed

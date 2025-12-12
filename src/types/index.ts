@@ -3,9 +3,9 @@
  * Based on Supabase database schema
  */
 
-export type IssueSeverity = 'critical' | 'high' | 'medium' | 'low' | 'info';
+export type IssueSeverity = 'critical' | 'moderate' | 'low';
 
-export type AgentType = 'ux' | 'a11y' | 'pm' | 'pmm' | 'legal' | 'content' | 'users';
+export type Category = 'product_design' | 'product_management' | 'accessibility' | 'content';
 
 /**
  * Issue from database
@@ -20,7 +20,7 @@ export interface Issue {
   actions?: IssueActions;
   userFeedback?: Record<string, any>;
   resolved: boolean;
-  agentTypes: AgentType[]; // From issue_agents junction table
+  category?: Category; // From issue_agents junction table
   createdAt: string;
   updatedAt: string;
 }
@@ -50,7 +50,7 @@ export interface IssueSummary {
   title: string;
   severity: IssueSeverity;
   resolved: boolean;
-  agentTypes: AgentType[];
+  category?: Category;
 }
 
 /**
@@ -59,7 +59,7 @@ export interface IssueSummary {
 export interface ListIssuesOptions {
   reviewId?: string;
   severity?: IssueSeverity;
-  agentType?: AgentType;
+  category?: Category;
   resolved?: boolean;
 }
 
@@ -68,15 +68,18 @@ export interface ListIssuesOptions {
  */
 export interface WriteIssueMessage {
   type: string;
+  projectId?: string;
   reviewId: string;
   issueId: string;
   title: string;
   severity: IssueSeverity;
   resolved?: boolean;
-  agentTypes: AgentType[];
+  category?: Category;
   elementMetadata?: ElementMetadata;
   details: string;
-  agentPrompt: string;
+  agentPrompt?: string;
   ticket?: string;
   timestamp: number;
+  created_at?: string;
+  updated_at?: string;
 }

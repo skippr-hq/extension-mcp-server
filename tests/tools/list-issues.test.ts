@@ -24,9 +24,9 @@ describe('list-issues tool', () => {
     const issue1 = result.issues.find((i) => i.id === '7b8efc72-0122-4589-bbaa-07fb53ec0e26');
     expect(issue1).toBeDefined();
     expect(issue1?.title).toBe('Button Color Inconsistency');
-    expect(issue1?.severity).toBe('medium');
+    expect(issue1?.severity).toBe('moderate');
     expect(issue1?.resolved).toBe(false);
-    expect(issue1?.agentTypes).toEqual(['ux']);
+    expect(issue1?.category).toBe('product_design');
   });
 
   it('should filter by reviewId', async () => {
@@ -42,22 +42,22 @@ describe('list-issues tool', () => {
   it('should filter by severity', async () => {
     const result = await listIssues({
       projectId: PROJECT_ID,
-      severity: 'high',
+      severity: 'critical',
     });
 
     expect(result.totalCount).toBe(1);
-    expect(result.issues[0].severity).toBe('high');
+    expect(result.issues[0].severity).toBe('critical');
     expect(result.issues[0].title).toBe('Missing Alt Text');
   });
 
-  it('should filter by agentType', async () => {
+  it('should filter by category', async () => {
     const result = await listIssues({
       projectId: PROJECT_ID,
-      agentType: 'a11y',
+      category: 'accessibility',
     });
 
     expect(result.totalCount).toBe(1);
-    expect(result.issues[0].agentTypes).toContain('a11y');
+    expect(result.issues[0].category).toBe('accessibility');
   });
 
   it('should filter by resolved status', async () => {
@@ -103,6 +103,7 @@ describe('list-issues tool', () => {
     const result = await listIssues({
       projectId: PROJECT_ID,
       severity: 'critical',
+      category: 'content', // No critical + content issues exist
     });
 
     expect(result.totalCount).toBe(0);
@@ -112,12 +113,12 @@ describe('list-issues tool', () => {
   it('should handle issues with multiple agent types', async () => {
     const result = await listIssues({
       projectId: PROJECT_ID,
-      agentType: 'content',
+      category: 'content',
     });
 
     expect(result.totalCount).toBe(1);
     const issue = result.issues[0];
-    expect(issue.agentTypes).toEqual(['content', 'pmm']);
+    expect(issue.category).toBe('content');
     expect(issue.title).toBe('Headline Needs Improvement');
   });
 

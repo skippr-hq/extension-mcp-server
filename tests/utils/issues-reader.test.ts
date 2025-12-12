@@ -38,8 +38,8 @@ describe('file-reader', () => {
       expect(result.frontmatter.id).toBe('7b8efc72-0122-4589-bbaa-07fb53ec0e26');
       expect(result.frontmatter.reviewId).toBe('223e4567-e89b-12d3-a456-426614174001');
       expect(result.frontmatter.title).toBe('Button Color Inconsistency');
-      expect(result.frontmatter.severity).toBe('medium');
-      expect(result.frontmatter.agentTypes).toEqual(['ux']);
+      expect(result.frontmatter.severity).toBe('moderate');
+      expect(result.frontmatter.category).toBe('product_design');
       expect(result.frontmatter.elementMetadata).toEqual({
         selector: 'button.secondary-cta',
         bounding_box: [100, 200, 150, 40],
@@ -54,10 +54,10 @@ describe('file-reader', () => {
       await expect(readIssueFile(testProjectId, '223e4567-e89b-12d3-a456-426614174001', 'nonexistent')).rejects.toThrow();
     });
 
-    it('should read issue with multiple agent types', async () => {
+    it('should read resolved issue', async () => {
       const result = await readIssueFile(testProjectId, '223e4567-e89b-12d3-a456-426614174002', '00e2a583-dd11-4d19-ba94-67c536fbb554');
 
-      expect(result.frontmatter.agentTypes).toEqual(['content', 'pmm']);
+      expect(result.frontmatter.category).toBe('content');
       expect(result.frontmatter.resolved).toBe(true);
     });
   });

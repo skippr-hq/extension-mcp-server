@@ -40,7 +40,7 @@ export function createMcpServer(): McpServer {
     'skippr_list_issues',
     {
       title: 'List Skippr Issues',
-      description: 'Lists all available Skippr issues with optional filtering by project, review, severity, agent type, and resolution status',
+      description: 'Lists all available Skippr issues with optional filtering by project, review, severity, category, and resolution status',
       inputSchema: ListIssuesInputSchema.shape,
       outputSchema: ListIssuesOutputSchema.shape
     },
@@ -62,7 +62,7 @@ export function createMcpServer(): McpServer {
         title: z.string(),
         severity: z.string(),
         resolved: z.boolean(),
-        agentTypes: z.array(z.string()),
+        category: z.string().optional(),
         markdown: z.string()
       }).shape
     },
